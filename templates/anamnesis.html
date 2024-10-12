@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Anamnesis View{% endblock %}
+
+{% block content %}
+  <h1>Patient Record</h1>
+
+  <!-- Left Column: Patient Past History and Anamnesis -->
+  <div style="display: flex;">
+    <div style="width: 50%; padding-right: 20px;">
+      <!-- Patient Past History Section -->
+      <h2>Patient Past History</h2>
+      <textarea id="past-history" name="past_history" rows="6" cols="50" placeholder="Enter patient's past history here..."></textarea>
+
+      <!-- Anamnesis Section -->
+      <h2>Anamnesis</h2>
+      <textarea id="anamnesis" name="anamnesis" rows="6" cols="50" placeholder="Enter anamnesis details here..."></textarea>
+    </div>
+
+    <!-- Right Column: Previous Consultations with Tabs -->
+    <div style="width: 50%;">
+      <h2>Patient's Previous Consultations</h2>
+      
+      <!-- Tabs for selecting different consultations -->
+      <div>
+        <button onclick="showTab('tab1')">Tab 1</button>
+        <button onclick="showTab('tab2')">Tab 2</button>
+        <button onclick="showTab('tab3')">Tab 3</button>
+      </div>
+
+      <!-- Tab content viewer -->
+      <div id="tab-content" style="border: 1px solid #000; padding: 10px; margin-top: 10px; height: 200px; overflow-y: auto;">
+        <div id="tab1" class="tab" style="display: none;">
+          <p>Previous consultation details for Tab 1...</p>
+        </div>
+        <div id="tab2" class="tab" style="display: none;">
+          <p>Previous consultation details for Tab 2...</p>
+        </div>
+        <div id="tab3" class="tab" style="display: none;">
+          <p>Previous consultation details for Tab 3...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script to handle tab switching..... this has to be moved to an external JS file!!! -->
+  <script>
+    function showTab(tabId) {
+      // Hide all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.style.display = 'none';
+      });
+
+      // Show the selected tab
+      document.getElementById(tabId).style.display = 'block';
+    }
+    
+    // Default to showing Tab 1
+    showTab('tab1');
+  </script>
+{% endblock %}
