@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <h1>Dashboard</h1>
+
+    <!-- Doctors will be able to select the date (default one is the current day)
+    see the appointments for that day and the next ones and when the patient is
+    arrived, a green button will appear to mark the patient as arrived and they will be able to proceed 
+    to the anamnesis. Ideally that has to be done dinamically, without the need for page reloading -->
+
+  <form method="GET" action="{{ url_for('dashboard') }}">
+    <label for="appointment-date">Select date:</label>
+    <input type="date" id="appointment-date" name="appointment_date" value="{{ current_date }}">
+    <button type="submit">View Appointments</button>
+  </form>
+
+  <h2>Appointments for {{ selected_date }}</h2>
+  <ul>
+    {% for appointment in appointments %}
+      <li>
+        <strong>Time:</strong> {{ appointment.time }} <br>
+        <strong>Patient:</strong> {{ appointment.patient_name }} <br>
+
+        {% if appointment.arrived %}
+          <span style="color: green;">Patient has arrived</span>
+        {% else %}
+          <form method="POST" action="{{ url_for('mark_arrived', appointment_id=appointment.id) }}">
+            <button type="submit" style="background-color: green; color: white;">Mark as Arrived</button>
+            <!-- link to specific anamnesis -->
+          </form>
+        {% endif %}
+      </li>
+      <hr>
+    {% endfor %}
+  </ul>
+  
+{% endblock %}

@@ -1,70 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>{% block title %}Med-Core{% endblock %}</title>
     <!-- Include any CSS files here -->
-</head>
-<body>
-    <header>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
         <nav>
-            <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('register') }}">User register</a></li>
-                <li><a href="{{ url_for('login') }}">Login</a></li>
-                            
-                <!-- Future user-based menu items -->
-
-                <!-- Future user-based menu items -->
-
-                <!-- TODO: Uncomment when session logic is implemented -->
-                {# {% if session.get('logged_in') %} #}
-
-                <!-- Add user-specific menu options when user is logged in -->
-                {# {% if user %} #}
-
-                    <!-- Show the logout button when user is logged in -->
-                    {# <li><a href="{{ url_for('logout') }}">Logout</a></li> #}
-
-                    <!-- Show doctor-specific menu options -->
-                    {# {% if user.is_doctor %} #}
-                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                    {# {% endif %} #}
-
-                    <!-- Show administrative-specific menu options -->
-                    {# {% if user.is_admistrative %} #}
-                    <li><a href="{{ url_for('patient_management') }}">Patient Management</a></li>
-                    <li><a href="{{ url_for('clinic_management') }}">Clinic Management</a></li>
-                    {# {% endif %} #}
-
-                    <!-- Show secretaries-specific menu options -->
-                    {# {% if user.is_secretary %} #}
-                    <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
-                    {# {% endif %} #}
-
-                <!-- Close user check -->
-                {# {% endif %} #}
-
-                {# {% endif %} #}
-
-<!-- Add more menu items as needed -->
-
-
-            
-                
-            </ul>
-            
+          <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('about') }}">About Us</a></li>
+            <li><a href="{{ url_for('contact') }}">Contact</a></li>
+            {% if session.get('logged_in') %} {% if session.get('role') ==
+            'admin' %}
+            <li>
+              <a href="{{ url_for('clinic_management') }}">Manage Clinics</a>
+            </li>
+            <li>
+              <a href="{{ url_for('doctor_management') }}">Manage Doctors</a>
+            </li>
+            <li>
+              <a href="{{ url_for('patient_management') }}">Manage Patients</a>
+            </li>
+            {% elif session.get('role') == 'doctor' %}
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('anamnesis') }}">Anamnesis</a></li>
+            {% elif session.get('role') == 'secretary' %}
+            <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
+            <li>
+              <a href="{{ url_for('patient_management') }}">Manage Patients</a>
+            </li>
+            {% endif %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% endif %}
+          </ul>
         </nav>
-    </header>
 
-    <main>
+        <!-- Future user-based menu items -->
+        <!-- TODO: Uncomment when session logic is implemented -->
+        {# {% if session.get('logged_in') %} #}
+        <!-- Add user-specific menu options when user is logged in -->
+        {# {% if user %} #}
+        <!-- Show the logout button when user is logged in -->
+        {#
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        #}
+        <!-- Show doctor-specific menu options -->
+        {# {% if user.is_doctor %} #} {# {% endif %} #}
+        <!-- Show administrative-specific menu options -->
+        {# {% if user.is_admistrative %} #} {# {% endif %} #}
+        <!-- Show secretaries-specific menu options -->
+        {# {% if user.is_secretary %} #} {# {% endif %} #}
+        <!-- Close user check -->
+        {# {% endif %} #} {# {% endif %} #}
+        <!-- Add more menu items as needed -->
+      </header>
+      <main>
         {% block content %}
         <!-- Content from child templates will be injected here -->
+        <h2>About Us</h2>
+        <p>
+          Welcome to our EHR system. Here you can find information about our
+          services.
+        </p>
         {% endblock %}
-    </main>
-
-    <footer>
+      </main>
+      <footer>
         <p>&copy; 2024 Med-Core</p>
-    </footer>
-</body>
+      </footer>
+    </div>
+  </body>
 </html>
