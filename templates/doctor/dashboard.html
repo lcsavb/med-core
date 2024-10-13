@@ -57,41 +57,41 @@
     console.log("Anamnesis content element:", anamnesisContent);
     if (anamnesisContent) {
       anamnesisContent.innerHTML = `
-        <h1>Patient Record for ${patientName}</h1>
-        <div style="display: flex;">
-          <div style="width: 50%; padding-right: 20px;">
-            <h2>Patient Past History</h2>
-            <textarea id="past-history" name="past_history" rows="6" cols="50" placeholder="Enter patient's past history here..."></textarea>
-            <h2>Anamnesis</h2>
-            <textarea id="anamnesis" name="anamnesis" rows="6" cols="50" placeholder="Enter anamnesis details here..."></textarea>
-          </div>
-          <div style="width: 50%;">
-            <h2>Patient's Previous Consultations</h2>
-            <div>
-              <button onclick="showTab('tab1')">Tab 1</button>
-              <button onclick="showTab('tab2')">Tab 2</button>
-              <button onclick="showTab('tab3')">Tab 3</button>
+          <h1>Patient Record for ${patientName}</h1>
+          <div style="display: flex;">
+            <div style="width: 50%; padding-right: 20px;">
+              <h2>Patient Past History</h2>
+              <textarea id="past-history" name="past_history" rows="6" cols="50" placeholder="Enter patient's past history here..."></textarea>
+              <h2>Anamnesis</h2>
+              <textarea id="anamnesis" name="anamnesis" rows="6" cols="50" placeholder="Enter anamnesis details here..."></textarea>
             </div>
-            <div id="tab-content" style="border: 1px solid #000; padding: 10px; margin-top: 10px; height: 200px; overflow-y: auto;">
-              <div id="tab1" class="tab" style="display: none;">
-                <p>Previous consultation details for ${patientName} - Tab 1...</p>
+            <div style="width: 50%;">
+              <h2>Patient's Previous Consultations</h2>
+              <div>
+                <button onclick="showTab('tab1')">Tab 1</button>
+                <button onclick="showTab('tab2')">Tab 2</button>
+                <button onclick="showTab('tab3')">Tab 3</button>
               </div>
-              <div id="tab2" class="tab" style="display: none;">
-                <p>Previous consultation details for ${patientName} - Tab 2...</p>
-              </div>
-              <div id="tab3" class="tab" style="display: none;">
-                <p>Previous consultation details for ${patientName} - Tab 3...</p>
+              <div id="tab-content" style="border: 1px solid #000; padding: 10px; margin-top: 10px; height: 200px; overflow-y: auto;">
+                <div id="tab1" class="tab" style="display: none;">
+                  <p>Previous consultation details for ${patientName} - Tab 1...</p>
+                </div>
+                <div id="tab2" class="tab" style="display: none;">
+                  <p>Previous consultation details for ${patientName} - Tab 2...</p>
+                </div>
+                <div id="tab3" class="tab" style="display: none;">
+                  <p>Previous consultation details for ${patientName} - Tab 3...</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div>
-          <h2>Contact Information</h2>
-          <p>For any inquiries, please contact us at:</p>
-          <p>Email: contact@example.com</p>
-          <p>Phone: (123) 456-7890</p>
-        </div>
-      `;
+          <div>
+            <h2>Contact Information</h2>
+            <p>For any inquiries, please contact us at:</p>
+            <p>Email: contact@example.com</p>
+            <p>Phone: (123) 456-7890</p>
+          </div>
+        `;
       showTab("tab1"); // Default to showing Tab 1
     } else {
       console.error("Anamnesis content element not found");

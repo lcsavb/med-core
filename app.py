@@ -89,8 +89,21 @@ def about():
 def schedule():
     if not session.get('logged_in') or session.get('role') not in ['admin', 'secretary']:
         return redirect(url_for('login'))
-    return render_template('schedule.html')
-
+    
+    # Fetch patient data (this is a placeholder, replace with actual data fetching logic)
+    appointments = [
+        {'id': 1, 'time': '09:00 AM', 'patient_name': 'John Doe', 'patient_id': 1, 'arrived': False},
+        {'id': 2, 'time': '10:00 AM', 'patient_name': 'Jane Smith', 'patient_id': 2, 'arrived': True},
+        {'id': 3, 'time': '11:00 AM', 'patient_name': 'Alice Johnson', 'patient_id': 3, 'arrived': False},
+    ]
+    
+    patients = {
+        1: {'ausweiss_number': '123456789', 'photo': 'path/to/photo1.jpg', 'phone': '(123) 456-7890', 'address': '123 Main St, Anytown, USA'},
+        2: {'ausweiss_number': '987654321', 'photo': 'path/to/photo2.jpg', 'phone': '(987) 654-3210', 'address': '456 Elm St, Othertown, USA'},
+        3: {'ausweiss_number': '456789123', 'photo': 'path/to/photo3.jpg', 'phone': '(456) 789-1234', 'address': '789 Oak St, Sometown, USA'},
+    }
+    
+    return render_template('secretary/schedule.html', appointments=appointments, patients=patients)
 @app.route('/patient_management')
 # TO DO @login_required
 # dashboard for admin and secretary to manage patients and make appointments
