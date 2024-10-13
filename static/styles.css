@@ -2,23 +2,14 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-}
-
-.container {
-    display: grid;
-    grid-template-areas:
-    "header"
-    "main";
-    grid-template-rows: auto 1fr;
-    height: 100vh;
+   
 }
 
 header {
-    grid-area: header;
-    background-color: #333;
-    color: white;
     padding: 1rem;
+    text-align: center;
 }
+
 
 nav ul {
     list-style-type: none;
@@ -30,45 +21,63 @@ nav ul {
 
 nav ul li {
     display: inline;
+
 }
 
 nav ul li a {
-    color: white;
+    color: rgb(5, 5, 5);
     text-decoration: none;
     padding: 0.5rem 1rem;
 }
 
 nav ul li a:hover {
-    background-color: #575757;
+    background-color: #e3e3e3;
 }
 
 main {
-    grid-area: main;
     padding: 1rem;
 }
 
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+footer {
+    text-align: left;
+    padding: 1rem;
 }
 
-.dashboard-item {
+
+
+.dashboard-grid {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+}
+
+.appointments {
+    position: relative;
     background-color: #f4f4f4;
     padding: 1rem;
     border: 1px solid #ddd;
     border-radius: 4px;
+    width: 30%;
+    margin-right: 1rem;
+    position: relative;
+    z-index: 1;
 }
 
-
-.logout a {
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    background-color: #ff4d4d;
+.anamnesis {
+    position: relative;
+    background-color: #f4f4f4;
+    padding: 1rem;
+    border: 1px solid #ddd;
     border-radius: 4px;
+    width: 70%;
 }
 
-.logout a:hover {
-    background-color: #ff1a1a;
+.patient-link {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.patient-link:hover {
+    color: darkblue;
 }

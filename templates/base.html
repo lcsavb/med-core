@@ -30,7 +30,7 @@
             </li>
             {% elif session.get('role') == 'doctor' %}
             <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li><a href="{{ url_for('anamnesis') }}">Anamnesis</a></li>
+
             {% elif session.get('role') == 'secretary' %}
             <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
             <li>
@@ -47,10 +47,6 @@
         {# {% if session.get('logged_in') %} #}
         <!-- Add user-specific menu options when user is logged in -->
         {# {% if user %} #}
-        <!-- Show the logout button when user is logged in -->
-        {#
-        <li><a href="{{ url_for('logout') }}">Logout</a></li>
-        #}
         <!-- Show doctor-specific menu options -->
         {# {% if user.is_doctor %} #} {# {% endif %} #}
         <!-- Show administrative-specific menu options -->

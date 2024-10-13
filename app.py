@@ -3,7 +3,8 @@ from flask import Flask, render_template, redirect, url_for, session, request
 # from flask_login import login_required
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+
+app.secret_key = 'mysecretkey'
 
 ### THERE WILL BE 3 TYPES OF USERS:
 # 1. Administrator (admin) - will be able to manage clinics, doctors and patients. Super user. It won´t be able to see clinical data
@@ -12,13 +13,10 @@ app.secret_key = 'your_secret_key'
 
 @app.route('/')
 def index():
-    print("Accessing index route")
-    print(f"Session state: {session}")
     if not session.get('logged_in'):
-        print("User not logged in, redirecting to login page")
         return redirect(url_for('login'))
-    print("User logged in, rendering index.html")
     return render_template('index.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -41,6 +39,29 @@ def login():
     return render_template('auth/login.html')
 
 
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in') or session.get('role') != 'doctor':
+        return redirect(url_for('login'))
+    # Get the selected date from the query parameters
+    selected_date = request.args.get('appointment_date', 'No date selected')
+    # Sample appointments data
+    appointments = [
+        {'time': '09:00 AM', 'patient_name': 'John Doe', 'arrived': False, 'id': 1},
+        {'time': '10:00 AM', 'patient_name': 'Jane Smith', 'arrived': True, 'id': 2},
+        {'time': '11:00 AM', 'patient_name': 'Alice Johnson', 'arrived': False, 'id': 3},
+    ]
+    # Render the dashboard template with the selected date and appointments
+    return render_template('doctor/dashboard.html', selected_date=selected_date, appointments=appointments)
+
+
+@app.route('/mark_arrived/<int:appointment_id>', methods=['POST'])
+def mark_arrived(appointment_id):
+    # Logic to mark the appointment as arrived
+    print(f"Marking appointment {appointment_id} as arrived")
+    # Redirect back to the dashboard
+    return redirect(url_for('dashboard'))
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
@@ -55,25 +76,11 @@ def register():
     return render_template('auth/register.html')
 
 
-@app.route('/dashboard')
-# TO DO @login_required
-# this is where the doctors will be able to see the patients that have been assigned to them
-def dashboard():
-    if not session.get('logged_in') or session.get('role') != 'doctor':
-        return redirect(url_for('login'))
-    return render_template('doctor/dashboard.html')
 
 @app.route('/about')
 def about():
     return render_template('about.html')
 
-@app.route('/anamnesis')
-# TO DO @login_required
-# this is where the doctors will be able to perform the anamnesis of the patients
-def anamnesis():
-    if not session.get('logged_in') or session.get('role') != 'doctor':
-        return redirect(url_for('login'))
-    return render_template('doctor/anamnesis.html')
 
 @app.route('/schedule')
 # TO DO @login_required
