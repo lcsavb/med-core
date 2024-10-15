@@ -12,6 +12,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://medcore:medcorepassword
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 
+appointments = [
+    {'time': '10:00 AM', 'patient_name': 'John Doe', 'arrived': False, 'id': 1},
+    {'time': '11:00 AM', 'patient_name': 'Jane Smith', 'arrived': False, 'id': 2}
+]
+
 db.init_app(app)
 migrate = Migrate(app, db)
 app.secret_key = 'mysecretkey'
@@ -41,6 +46,20 @@ def about():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('./doctor/dashboard.html', appointments=appointments)
+
+@app.route('/mark_arrived/<int:appointment_id>', methods=['POST'])
+def mark_arrived(appointment_id):
+    # Find the appointment by ID and mark it as arrived
+    for appointment in appointments:
+        if appointment['id'] == appointment_id:
+            appointment['arrived'] = True
+            break
+    return redirect(url_for('dashboard'))
+
 
 @app.route('/test-db')
 def test_db():
