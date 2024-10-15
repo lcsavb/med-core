@@ -8,7 +8,7 @@ from models import db, User
 from auth import auth_bp
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://medcore:medcorepassword@127.0.0.1:3306/medcore_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://medcore:medcorepassword@localhost:3306/medcore_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 
@@ -25,7 +25,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Blueprints
-app.register_blueprint(auth_bp)
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 print(app.url_map)
 
