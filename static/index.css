@@ -78,10 +78,35 @@ body {
     background-color: #00d5ff;
 }
 
+/* Features */
+
+.features {
+    text-align: center;
+    padding: 4rem 1rem;
+    background-color: #fdfaff; 
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 2rem 0;
+}
+
+.features h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: #4b0082; /* Dark purple color */
+}
+
+.feature-list {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
 .feature-item {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    background: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    transition: transform 0.6s ease, opacity 0.6s ease;
 }
 
 .feature-item.visible {
@@ -89,6 +114,25 @@ body {
     transform: translateY(0);
 }
 
+.feature-item i {
+    font-size: 2rem;
+    color: #4b0082; /* Dark purple color */
+    margin-bottom: 1rem;
+}
+
+.feature-item h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.feature-item p {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+
+/* General Section Styles */
 .features, .testimonials, .benefits, .contact {
     padding: 2rem 1rem;
     text-align: center;
@@ -98,39 +142,6 @@ body {
     font-size: 2rem;
     margin-bottom: 1.5rem;
 }
-
-.feature-list, .testimonial-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.feature-item, .testimonial-item {
-    background-color: #fff;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 300px;
-    box-sizing: border-box;
-}
-
-.feature-item i, .testimonial-item i {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-}
-
-.feature-item h3, .testimonial-item h4 {
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
-}
-
-.feature-item p, .testimonial-item p {
-    font-size: 1rem;
-    color: #555;
-}
-
 
 .benefits ul {
     list-style-type: none;
