@@ -1,16 +1,4 @@
 {
-	"auths": {},
-	"credsStore": "osxkeychain",
-	"currentContext": "desktop-linux",
-	"plugins": {
-		"debug": {
-			"hooks": "exec"
-		},
-		"scout": {
-			"hooks": "pull,buildx build"
-		}
-	},
-	"features": {
-		"hooks": "true"
-	}
-}
+	"database_uri": "mysql+pymysql://medcore:medcorepassword@0.0.0.0:3306/medcore_db"
+  }
+  
