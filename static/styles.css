@@ -1,8 +1,21 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-   
+    background-color: #f0f2f5;
+    display: flex;
+
+}
+
+.container {
+    background-color: #fdfaff; /* Light purple background color */
+    background-size: 100px 100px, 150px 150px, 200px 200px;
+    background-position: top left, center center, bottom right;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    position: relative;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 header {
@@ -10,8 +23,22 @@ header {
     text-align: center;
 }
 
+nav {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fdfaff;
+    width: calc(100% - 4rem); /* Adjust width to match .container padding */
+    padding: 1.85rem 2rem; /* Adjust padding to match .container */
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 1200px; /* Match the max-width of .container */
+}
 
 nav ul {
+    
     list-style-type: none;
     margin: 0;
     padding: 0;

@@ -49,7 +49,7 @@ def contact():
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template('./doctor/dashboard.html', appointments=appointments)
+    return render_template('/doctor/dashboard.html', appointments=appointments)
 
 @app.route('/mark_arrived/<int:appointment_id>', methods=['POST'])
 def mark_arrived(appointment_id):
@@ -68,6 +68,10 @@ def test_db():
         return 'Database connection successful!', 200
     except Exception as e:
         return f'Error connecting to the database: {str(e)}', 500
+
+@app.route('/login')
+def login():
+    return render_template('auth/login.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
