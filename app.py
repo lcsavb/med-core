@@ -15,6 +15,7 @@ local_db_uri = config['database_uri']
 print(local_db_uri)
 
 app = Flask(__name__)
+app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = local_db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
