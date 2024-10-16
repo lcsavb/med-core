@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
 
@@ -30,6 +30,7 @@ def login():
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    '''Register a new user and check if the username is already taken'''
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -38,9 +39,13 @@ def register():
         password_hash = generate_password_hash(password)
         
         # Create and add the new user to the database
-        new_user = User(username=username, password_hash=password_hash)
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            new_user = User(username=username, password_hash=password_hash)
+            db.session.add(new_user)
+            db.session.commit()
+        except:
+            flash('Username already taken!', 'danger')
+            return redirect(url_for('auth.register'))
         
         flash('User registered successfully!', 'success')
         
