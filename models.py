@@ -45,6 +45,7 @@ class HealthcareProfessional(db.Model, UserMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     # User role can be a doctor and admin, doctor can never be dropped
     is_doctor = db.Column(db.Boolean, nullable=False, default=True)
+    # i am not sure if its a goode idea for doctor to be an admin, since he can be associated with multiple clinics
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     profession = db.Column(db.String(50), nullable=False)
     specialty = db.Column(db.String(100), nullable=True)
