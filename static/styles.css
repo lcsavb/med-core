@@ -54,11 +54,14 @@ nav ul li {
 nav ul li a {
     color: rgb(5, 5, 5);
     text-decoration: none;
-    padding: 0.5rem 1rem;
+    padding: 0.7rem 1.2rem;
+    transition: background-color 0.3s ease, border-radius 0.3s ease;
 }
 
 nav ul li a:hover {
-    background-color: #e3e3e3;
+    
+    background-color: #94ebfd;
+    border-radius: 10px;
 }
 
 main {
