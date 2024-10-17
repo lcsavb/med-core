@@ -19,49 +19,30 @@
       <header>
         <nav>
           <ul>
-            <li><a href="{{ url_for('index') }}">Home</a></li>
-            <li><a href="{{ url_for('about') }}">About Us</a></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
-            <li><a href="{{ url_for('contact') }}">Contact</a></li>
-            {% if session.get('logged_in') %} {% if session.get('role') ==
-            'admin' %}
-            <li>
-              <a href="{{ url_for('clinic_management') }}">Manage Clinics</a>
-            </li>
-            <li>
-              <a href="{{ url_for('doctor_management') }}">Manage Doctors</a>
-            </li>
-            <li>
-              <a href="{{ url_for('patient_management') }}">Manage Patients</a>
-            </li>
-            {% elif session.get('role') == 'doctor' %}
-            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-
-            {% elif session.get('role') == 'secretary' %}
-            <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
-            <li>
-              <a href="{{ url_for('patient_management') }}">Manage Patients</a>
-            </li>
-            {% endif %}
-            <li><a href="{{ url_for('logout') }}">Logout</a></li>
-            {% endif %}
+              <li><a href="{{ url_for('index') }}">Home</a></li>
+              <li><a href="{{ url_for('about') }}">About Us</a></li>
+              <li><a href="{{ url_for('contact') }}">Contact</a></li>
+              
+              {% if current_user.is_authenticated %}
+                  {% if current_user.is_admin %}
+                      <li><a href="{{ url_for('clinic_management') }}">Manage Clinics</a></li>
+                      <li><a href="{{ url_for('doctor_management') }}">Manage Doctors</a></li>
+                      <li><a href="{{ url_for('patient_management') }}">Manage Patients</a></li>
+                  {% endif %}
+      
+                  {% if current_user.healthcare_professional %}
+                      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                      <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
+                      <li><a href="{{ url_for('patient_management') }}">Manage Patients</a></li>
+                  {% endif %}
+      
+                  <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+              {% else %}
+                  <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+              {% endif %}
           </ul>
-        </nav>
+      </nav>
 
-        <!-- Future user-based menu items -->
-        <!-- TODO: Uncomment when session logic is implemented -->
-        {# {% if session.get('logged_in') %} #}
-        <!-- Add user-specific menu options when user is logged in -->
-        {# {% if user %} #}
-        <!-- Show doctor-specific menu options -->
-        {# {% if user.is_doctor %} #} {# {% endif %} #}
-        <!-- Show administrative-specific menu options -->
-        {# {% if user.is_admistrative %} #} {# {% endif %} #}
-        <!-- Show secretaries-specific menu options -->
-        {# {% if user.is_secretary %} #} {# {% endif %} #}
-        <!-- Close user check -->
-        {# {% endif %} #} {# {% endif %} #}
-        <!-- Add more menu items as needed -->
       </header>
 
       {% with messages = get_flashed_messages(with_categories=True) %} {% if

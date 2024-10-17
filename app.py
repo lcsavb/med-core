@@ -1,14 +1,22 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import login_required, LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from datetime import timedelta
-from models import db, User
+from models import db, User, HealthcareProfessional
 from auth import auth_bp
+import json
+
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+local_db_uri = config['database_uri']
+print(local_db_uri)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://medcore:medcorepassword@localhost:3306/medcore_db'
+app.config['DEBUG'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = local_db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 app.secret_key = 'mysecretkey'
@@ -62,7 +70,22 @@ def mark_arrived(appointment_id):
             break
     return redirect(url_for('dashboard'))
 
+@app.route('/clinic_management')
+def clinic_management():
+    return render_template('./admin/clinic_management.html', clinics=clinics)
+
+@app.route('/doctor_management')
+def doctor_management():
+    return render_template('./admin/doctor_management.html', doctors=doctors)
+
+@app.route('/patient_management')
+def patient_management():
+    return render_template('./admin/patient_management.html', patients=patients)
+
+
+
 @app.route('/test-db')
+@login_required
 def test_db():
     try:
         db.session.execute(text('SELECT 1'))

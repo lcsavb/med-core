@@ -7,10 +7,14 @@ db = SQLAlchemy()
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(50), nullable=False, unique=True)
+    # User role will always be admin
+    is_admin = db.Column(db.Boolean, nullable=False, default=True)
+    # this is a one to one relationship, as a user (admin) can sometimes be a healthcare professional
+    healthcare_professional = db.relationship('HealthcareProfessional', backref='user', uselist=False)
+    is_doctor = db.Column(db.Boolean, nullable=False, default=False)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     clinics = db.relationship('Clinic', backref='admin', lazy=True)
 
 class Clinic(db.Model):
@@ -27,18 +31,25 @@ class Clinic(db.Model):
     employment_links = db.relationship('EmploymentLink', backref='clinic', lazy=True)
     schedules = db.relationship('Schedule', backref='clinic', lazy=True)
 
-class FrontDeskUser(db.Model):
+class FrontDeskUser(db.Model, UserMixin):
     __tablename__ = 'front_desk_users'
     id = db.Column(db.Integer, primary_key=True)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     clinic_id = db.Column(db.Integer, db.ForeignKey('clinics.id'), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-class HealthcareProfessional(db.Model):
+class HealthcareProfessional(db.Model, UserMixin):
     __tablename__ = 'healthcare_professionals'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # User role can be a doctor and admin, doctor can never be dropped
+    is_doctor = db.Column(db.Boolean, nullable=False, default=True)
+    # i am not sure if its a goode idea for doctor to be an admin, since he can be associated with multiple clinics
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
     profession = db.Column(db.String(50), nullable=False)
     specialty = db.Column(db.String(100), nullable=True)
+    council_number = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(20), nullable=True)
     address = db.Column(db.String(255), nullable=True)
