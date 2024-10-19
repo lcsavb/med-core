@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import Error
 from db import get_db_connection
 from models import User, get_user_by_username
+from datetime import datetime
 
 auth_bp = Blueprint('auth', __name__)
 
