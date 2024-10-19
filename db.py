@@ -1,22 +1,19 @@
 import mysql.connector
 from mysql.connector import Error
-import json
+import os
+
 
 # Database connection
 def get_db_connection():
     try:
-        # Load database configuration from config.json
-        with open('config.json', 'r') as f:
-            config = json.load(f)
-        db_config = config['database']
-        
+                
         connection = mysql.connector.connect(
-            host=db_config['host'],
-            port=db_config['port'],
-            database=db_config['database'],
-            user=db_config['user'],
-            password=db_config['password']
-        )
+        host=os.getenv('MYSQL_HOST', 'localhost'),
+        port=int(os.getenv('MYSQL_PORT', 3306)),  # Note: convert port to int
+        database=os.getenv('MYSQL_DATABASE'),
+        user=os.getenv('MYSQL_USER'),
+        password=os.getenv('MYSQL_PASSWORD')
+    )
         if connection.is_connected():
             return connection
     except Error as e:
