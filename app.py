@@ -1,24 +1,17 @@
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_login import login_required, LoginManager
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text
+from mysql.connector import Error
 from datetime import timedelta
-from models import db, User, HealthcareProfessional
 from auth import auth_bp
-import json
-
-with open('config.json', 'r') as f:
-    config = json.load(f)
-
-local_db_uri = config['database_uri']
-print(local_db_uri)
+from db import get_db_connection
+from models import User, get_user_by_username
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = local_db_uri
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
+
+# Blueprints
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Login Manager
 login_manager = LoginManager()
@@ -27,35 +20,10 @@ login_manager.init_app(app)
 
 # Define the user loader function
 @login_manager.user_loader
-def load_user(user_id):
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        return None
+def load_user(username):
+    user = get_user_by_username(username)
+    return user
 
-    # Try loading the user from the User table
-    user = User.query.get(user_id)
-    if user:
-        return user
-
-    # Try loading from HealthcareProfessional if needed
-    healthcare_professional = HealthcareProfessional.query.get(user_id)
-    if healthcare_professional:
-        return healthcare_professional
-
-    return None
-
-
-
-# ORM Database
-db.init_app(app)
-migrate = Migrate(app, db)
-app.secret_key = 'mysecretkey'
-
-# Blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-
-print(app.url_map)
 
 
 @app.route('/')
@@ -76,12 +44,7 @@ def dashboard():
 
 @app.route('/mark_arrived/<int:appointment_id>', methods=['POST'])
 def mark_arrived(appointment_id):
-    # Find the appointment by ID and mark it as arrived
-    for appointment in appointments:
-        if appointment['id'] == appointment_id:
-            appointment['arrived'] = True
-            break
-    return redirect(url_for('dashboard'))
+    pass    
 
 @app.route('/clinic_management')
 def clinic_management():
@@ -96,15 +59,22 @@ def patient_management():
     return render_template('./admin/patient_management.html', patients=patients)
 
 
-
 @app.route('/test-db')
-@login_required
 def test_db():
-    try:
-        db.session.execute(text('SELECT 1'))
-        return 'Database connection successful!', 200
-    except Exception as e:
-        return f'Error connecting to the database: {str(e)}', 500
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute('SELECT 1')
+            return 'Database connection successful!', 200
+        except Error as e:
+            return f'Error executing query: {e}', 500
+        finally:
+            cursor.close()
+            connection.close()
+    else:
+        return 'Failed to connect to the database.', 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

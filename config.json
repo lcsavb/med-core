@@ -1,4 +1,9 @@
 {
-	"database_uri": "mysql+pymysql://medcore:medcorepassword@0.0.0.0:3306/medcore_db"
+  "database": {
+    "host": "0.0.0.0",
+    "port": 3306,
+    "database": "medcore_db",
+    "user": "medcore",
+    "password": "medcorepassword"
   }
-  
+}
