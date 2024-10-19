@@ -39,10 +39,12 @@ def contact():
     return render_template('contact.html')
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    return render_template('./doctor/dashboard.html', appointments=appointments)
+    return render_template('/doctor/dashboard.html', appointments=appointments)
 
 @app.route('/mark_arrived/<int:appointment_id>', methods=['POST'])
+@login_required
 def mark_arrived(appointment_id):
     pass    
 

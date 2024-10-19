@@ -45,16 +45,14 @@
 
       </header>
 
-      {% with messages = get_flashed_messages(with_categories=True) %}
-      {% if messages %}
-        <div class="flashes">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-      {% endwith %}
-
+      {% with messages = get_flashed_messages(with_categories=True) %} {% if
+      messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
 
       <main>
         {% block content %}
@@ -65,8 +63,6 @@
           services.
         </p>
         {% endblock %}
-
-        
       </main>
       <footer>
         <p>&copy; 2024 Med-Core</p>
