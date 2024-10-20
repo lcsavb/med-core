@@ -1,27 +1,29 @@
-import mysql.connector
 from mysql.connector import Error
-import os
 from functools import wraps
+from flask import logging
+import mysql.connector.pooling
+import os
 
+
+pool = mysql.connector.pooling.MySQLConnectionPool(
+    pool_name="mypool",
+    pool_size=5,
+    pool_reset_session=True,
+    host=os.getenv('MYSQL_HOST', 'localhost'),
+    port=int(os.getenv('MYSQL_PORT', 3306)),
+    database=os.getenv('MYSQL_DATABASE'),
+    user=os.getenv('MYSQL_USER'),
+    password=os.getenv('MYSQL_PASSWORD')
+)
 
 # Database connections
 def get_db_connection():
+    """Get a connection from the connection pool."""
     try:
-                
-        connection = mysql.connector.connect(
-        host=os.getenv('MYSQL_HOST', 'localhost'),
-        port=int(os.getenv('MYSQL_PORT', 3306)),  # Note: convert port to int
-        database=os.getenv('MYSQL_DATABASE'),
-        user=os.getenv('MYSQL_USER'),
-        password=os.getenv('MYSQL_PASSWORD')
-    )
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"Error connecting to MariaDB: {e}")
-        return None
-    except FileNotFoundError:
-        print("config.json file not found.")
+        connection = pool.get_connection()  # Retrieve a connection from the pool
+        return connection
+    except mysql.connector.Error as e:
+        logging.error(f"Error getting connection from pool: {e}")
         return None
     
 
