@@ -48,7 +48,7 @@ def contact():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('/doctor/dashboard.html', appointments=appointments)
+    return render_template('/doctor/dashboard.html')
 
 @app.route('/mark_arrived/<int:appointment_id>', methods=['POST'])
 @login_required
@@ -57,15 +57,15 @@ def mark_arrived(appointment_id):
 
 @app.route('/clinic_management')
 def clinic_management():
-    return render_template('./admin/clinic_management.html', clinics=clinics)
+    return render_template('./admin/clinic_management.html')
 
 @app.route('/doctor_management')
 def doctor_management():
-    return render_template('./admin/doctor_management.html', doctors=doctors)
+    return render_template('./admin/doctor_management.html')
 
 @app.route('/patient_management')
 def patient_management():
-    return render_template('./admin/patient_management.html', patients=patients)
+    return render_template('./admin/patient_management.html')
 
 
 @app.route('/test-db')

@@ -59,11 +59,7 @@
         <!-- Content from child templates will be injected here -->
         <h2>About Us</h2>
         <p>
-          {% if current_user.is_authenticated %}
-  <p>Welcome, {{ current_user.username }}!</p>
-{% else %}
-  <p>You are not logged in.</p>
-{% endif %}
+
           Welcome to our EHR system. Here you can find information about our
           services.
         </p>
