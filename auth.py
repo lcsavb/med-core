@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, logging
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from mysql.connector import Error
-from db import get_db_connection, atomic_transaction
-from datetime import datetime
+from db import engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import text
 from models import construct_user
 
 auth_bp = Blueprint('auth', __name__)
@@ -52,61 +52,53 @@ def register():
     return render_template('auth/register.html')
 
 
-@atomic_transaction
-def save_user_in_db(conn, cursor, username, password_hash):
-    """Insert a new user into the database using an atomic transaction."""
-    cursor.execute("""
-        INSERT INTO users (username, password_hash, is_admin, is_doctor, created_at)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (username, password_hash, False, False, datetime.utcnow()))
+def save_user_in_db(username, password_hash):
+    """Insert a new user into the database using vanilla SQL and transaction handling."""
+    try:
+        with engine.begin() as conn:  # engine.begin() handles transaction management
+            query = text("""
+                INSERT INTO users (username, password_hash, is_admin, is_doctor, created_at)
+                VALUES (:username, :password_hash, :is_admin, :is_doctor, NOW())
+            """)
+            conn.execute(query, {
+                'username': username,
+                'password_hash': password_hash,
+                'is_admin': False,
+                'is_doctor': False
+            })
+    except SQLAlchemyError as e:
+        logging.error(f"Transaction failed: {e}")
+        raise RuntimeError(f"Transaction failed: {e}")
 
 
 
 def authenticate_user(username, password):
     """Authenticate a user based on username and password."""
-    conn = get_db_connection()
-    if not conn:
-        logging.error("Failed to get a database connection")
-        return None
-
-    cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user_data = cursor.fetchone()
-        if user_data and check_password_hash(user_data['password_hash'], password):
-            return construct_user(user_data)
-    except Error as e:
+        with engine.connect() as conn:  # Use engine.connect() to get a connection
+            query = text("SELECT * FROM users WHERE username = :username")
+            result = conn.execute(query, {'username': username})
+            user_data = result.fetchone()  # Fetch one result
+            
+            if user_data and check_password_hash(user_data['password_hash'], password):
+                return construct_user(user_data)
+    except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error during user authentication: {e}")
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-    return None
+        raise  # Re-raise the exception after logging it
 
 def get_user_by_username(username):
     """Get a user by their username."""
-    conn = get_db_connection()
-    if not conn:
-        logging.error("Failed to get a database connection")
-        return None
-
-    cursor = None
     try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user_data = cursor.fetchone()
-        if user_data:
-            return construct_user(user_data)
-    except Error as e:
+        with engine.connect() as conn:  # Use engine.connect() to get a connection
+            query = text("SELECT * FROM users WHERE username = :username")
+            result = conn.execute(query, {'username': username})
+            user_data = result.fetchone()  # Fetch one result
+            
+            if user_data:
+                return construct_user(user_data)
+    except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error getting user by username: {e}")
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-    return None
+        raise  # Re-raise the exception after logging it
 
 @auth_bp.route('/logout')
 @login_required
