@@ -1,9 +1,10 @@
 import mysql.connector
 from mysql.connector import Error
 import os
+from functools import wraps
 
 
-# Database connection
+# Database connections
 def get_db_connection():
     try:
                 
@@ -22,3 +23,30 @@ def get_db_connection():
     except FileNotFoundError:
         print("config.json file not found.")
         return None
+    
+
+def atomic_transaction(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        conn = get_db_connection()
+        if not conn:
+            raise RuntimeError("Failed to get a database connection")
+        
+        cursor = None
+        try:
+            cursor = conn.cursor()
+            conn.start_transaction()  # Start transaction
+
+            result = f(conn, cursor, *args, **kwargs)  # Call the decorated function
+
+            conn.commit()  # Commit transaction if everything is okay
+            return result
+        except Error as e:
+            conn.rollback()  # Rollback transaction on failure
+            raise RuntimeError(f"Transaction failed: {e}")
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+    return decorated_function

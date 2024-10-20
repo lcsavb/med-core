@@ -1,11 +1,10 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, request, flash
+from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from flask_login import login_required, LoginManager
 from mysql.connector import Error
 from datetime import timedelta
-from auth import auth_bp
-from db import get_db_connection
-from models import User, get_user_by_username
+from auth import auth_bp, get_user_by_username
+from models import models_bp
 
 
 app = Flask(__name__)
@@ -15,6 +14,7 @@ app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 
 # Blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(models_bp)
 
 # Secret key for session management
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
@@ -67,30 +67,11 @@ def doctor_management():
 def patient_management():
     return render_template('./admin/patient_management.html')
 
+# Debbugin route to show all the session information
 
-@app.route('/test-db')
-def test_db():
-    try:
-        with get_db_connection() as connection:
-            if not connection:
-                return 'Failed to connect to the database.', 500
-
-            with connection.cursor() as cursor:
-                cursor.execute('SELECT 1')
-                result = cursor.fetchone()
-
-                if result:
-                    return 'Database connection successful!', 200
-                else:
-                    return 'Unexpected query result.', 500
-
-    except Error as e:
-        return f'Error executing query: {e}', 500
-
-
-
-
-
+@app.route('/session')
+def session_view():
+    return jsonify(dict(session))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, user_reloader=True)
