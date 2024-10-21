@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Route Example</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}" />
+</head>
+<body>
+    <h1>Protected Route</h1>
+
+    <div id="protected-content">
+        <p>Loading protected data...</p>
+    </div>
+
+    <script>
+        function accessProtectedRoute() {
+    const token = localStorage.getItem('token');
+    console.log('Token:', token);  // Ensure the token is retrieved correctly
+
+    if (token) {
+        fetch('/auth/protected', {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': `Bearer ${token}`,  // Include the token in the Authorization header
+                'Content-Type': 'application/json'
+            }),
+            credentials: 'same-origin'  // Include credentials if needed
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to access protected route.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Protected data:', data);
+            // Display the protected data in the div
+            document.getElementById('protected-content').innerHTML = `<p>${data.message}</p>`;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error accessing protected data. Please log in again.');
+            window.location.href = '/login';  // Redirect to login page if no token or error
+        });
+    } else {
+        console.log('No token found');
+        alert('No token found, please log in again.');
+        window.location.href = '/login';  // Redirect to login page if no token
+    }
+}
+
+document.addEventListener('DOMContentLoaded', accessProtectedRoute);
+
+    </script>
+</body>
+</html>
