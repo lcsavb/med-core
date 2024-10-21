@@ -39,11 +39,12 @@
   <h2>Authentication Successful!</h2>
   <p>Welcome back! You are now authenticated.</p>
   <button id="logoutBtn" class="btn btn-secondary">Logout</button>
-  <br/><br/>
-  <!-- Button to check authentication status -->
-  <button id="checkStatusBtn" class="btn btn-info">Check Authentication Status</button>
-  <p id="statusResult" style="display:none;"></p>
 </div>
+
+<!-- Button to check authentication status -->
+<br/><br/>
+<button id="checkStatusBtn" class="btn btn-info">Check Authentication Status</button>
+<p id="statusResult" style="display:none;"></p>
 
 <script>
   // Function to handle login form submission
@@ -101,34 +102,32 @@
 
   // Function to check authentication status
   function checkAuthStatus() {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch('/auth/status', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        const statusResult = document.getElementById('statusResult');
-        statusResult.style.display = 'block';
-        if (data.authenticated) {
-          statusResult.innerText = `Authenticated as: ${data.username}`;
-          statusResult.style.color = 'green';
-        } else {
-          statusResult.innerText = 'Not authenticated.';
-          statusResult.style.color = 'red';
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while checking authentication status.');
-      });
+  const token = localStorage.getItem('token');
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+  fetch('/auth/status', {
+    method: 'GET',
+    headers: headers,
+  })
+  .then(response => response.json())
+  .then(data => {
+    const statusResult = document.getElementById('statusResult');
+    statusResult.style.display = 'block';
+    
+    // Display the message directly from the backend
+    if (data.message) {
+      statusResult.innerText = data.message;
+    } else if (data.authenticated) {
+      statusResult.innerText = `Authenticated as: ${data.username}`;
     } else {
-      alert('No token found.');
+      statusResult.innerText = 'Not authenticated.';
     }
-  }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred while checking authentication status.');
+  });
+}
 
   // Attach the checkAuthStatus function to the "Check Status" button
   document.getElementById('checkStatusBtn').addEventListener('click', checkAuthStatus);
