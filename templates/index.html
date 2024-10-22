@@ -1,166 +1,51 @@
-{% extends "base.html" %}
-{% block title %}Home{% endblock %}
-{% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}" />
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Med-Core{% endblock %}</title>
+    <!-- Include CSS files here -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}" />
+    <script src="{{ url_for('static', filename='scripts/routing.js') }}" defer></script>
+  </head>
 
-<!-- Login Form Container -->
-<div class="login-container" id="loginContainer">
-  <h2>Login</h2>
-  <form id="loginForm">
-    <div class="form-group">
-      <label for="username">Username:</label>
-      <input
-        type="text"
-        id="username"
-        name="username"
-        class="form-control"
-        required
-      />
+  <body>
+    <div class="container">
+      <header>
+        <nav>
+          <ul>
+            <!-- Each link now has a simple identifier (e.g., 'home', 'about') -->
+            <li><a href="#" class="nav-link" data-page="home">Home</a></li>
+            <li><a href="#" class="nav-link" data-page="about">About Us</a></li>
+            <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
+
+            {% if current_user.is_authenticated %}
+              {% if current_user.is_admin %}
+                <li><a href="#" class="nav-link" data-page="clinic_management">Manage Clinics</a></li>
+                <li><a href="#" class="nav-link" data-page="doctor_management">Manage Doctors</a></li>
+                <li><a href="#" class="nav-link" data-page="patient_management">Manage Patients</a></li>
+              {% endif %}
+              <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a></li>
+            {% else %}
+            <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </header>
+
+      <!-- This placeholder div holds the base URL for the static files -->
+      <div id="base-url" style="display: none;">
+        {{ url_for('static', filename='') }}
+      </div>
+
+      <!-- Dynamic content will be injected into the main section -->
+      <main id="main-content">
+        <h1>Welcome to Med-Core</h1>
+        <p>This is the home page content.</p>
+      </main>
+
+      <footer>
+        <p>&copy; 2024 Med-Core</p>
+      </footer>
     </div>
-    <div class="form-group">
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-control"
-        required
-      />
-    </div>
-    <button type="submit" class="btn btn-primary">Login</button>
-  </form>
-  <p>
-    Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>
-  </p>
-</div>
-
-<!-- Authentication Success Container -->
-<div id="authSuccessMessage" style="display:none;">
-  <h2>Authentication Successful!</h2>
-  <p>Welcome back! You are now authenticated.</p>
-  <button id="logoutBtn" class="btn btn-secondary">Logout</button>
-</div>
-
-<!-- Button to check authentication status -->
-<br/><br/>
-<button id="checkStatusBtn" class="btn btn-info">Check Authentication Status</button>
-<p id="statusResult" style="display:none;"></p>
-
-<script>
-  // Function to handle login form submission
-  document.getElementById('loginForm').addEventListener('submit', async function (event) {
-    event.preventDefault(); // Prevent form from submitting the default way
-
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    try {
-      // Send login request to the server
-      const response = await fetch('/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Store the token in localStorage for future requests
-        localStorage.setItem('token', data.token);
-
-        // Hide the login form and show success message
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('authSuccessMessage').style.display = 'block';
-      } else {
-        // Show an error message if login fails
-        alert(data.message || 'Login failed, please try again.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred. Please try again.');
-    }
-  });
-
-  // Function to handle logout
-  function logout() {
-    // Remove the token from localStorage
-    localStorage.removeItem('token');
-
-    // Show the login form and hide the success message
-    document.getElementById('loginContainer').style.display = 'block';
-    document.getElementById('authSuccessMessage').style.display = 'none';
-    document.getElementById('statusResult').style.display = 'none'; // Hide the status result
-  }
-
-  // Attach the logout function to the Logout button
-  document.getElementById('logoutBtn').addEventListener('click', logout);
-
-  // Function to check authentication status
-  function checkAuthStatus() {
-  const token = localStorage.getItem('token');
-  const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-  fetch('/auth/status', {
-    method: 'GET',
-    headers: headers,
-  })
-  .then(response => response.json())
-  .then(data => {
-    const statusResult = document.getElementById('statusResult');
-    statusResult.style.display = 'block';
-    
-    // Display the message directly from the backend
-    if (data.message) {
-      statusResult.innerText = data.message;
-    } else if (data.authenticated) {
-      statusResult.innerText = `Authenticated as: ${data.username}`;
-    } else {
-      statusResult.innerText = 'Not authenticated.';
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('An error occurred while checking authentication status.');
-  });
-}
-
-  // Attach the checkAuthStatus function to the "Check Status" button
-  document.getElementById('checkStatusBtn').addEventListener('click', checkAuthStatus);
-
-  // Check if token exists in localStorage and show success message if it does
-  document.addEventListener('DOMContentLoaded', function () {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Send a request to check the login status
-      fetch('/auth/status', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.authenticated) {
-          // Token is valid, hide login form and show success message
-          document.getElementById('loginContainer').style.display = 'none';
-          document.getElementById('authSuccessMessage').style.display = 'block';
-        } else {
-          // If not authenticated, remove token and show login form
-          localStorage.removeItem('token');
-          document.getElementById('loginContainer').style.display = 'block';
-          document.getElementById('authSuccessMessage').style.display = 'none';
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while checking authentication status.');
-      });
-    }
-  });
-</script>
-{% endblock %}
+  </body>
+</html>
