@@ -31,5 +31,16 @@ services:
     depends_on:
       - mariadb
 
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx-stacy.Dockerfile 
+    ports:
+      - "80:80"
+    volumes:
+      - ./static:/usr/share/nginx/html
+    depends_on:
+      - flask
+
 volumes:
   mariadb_data:

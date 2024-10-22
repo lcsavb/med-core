@@ -2,10 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>{% block title %}Med-Core{% endblock %}</title>
+    <title>Med-Core</title>
     <!-- Include CSS files here -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/styles.css') }}" />
-    <script src="{{ url_for('static', filename='scripts/routing.js') }}" defer></script>
+    <link rel="stylesheet" href="/styles/styles.css" />
+    <script src="/scripts/routing.js" defer></script>
   </head>
 
   <body>
@@ -18,23 +18,22 @@
             <li><a href="#" class="nav-link" data-page="about">About Us</a></li>
             <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
 
-            {% if current_user.is_authenticated %}
-              {% if current_user.is_admin %}
+
                 <li><a href="#" class="nav-link" data-page="clinic_management">Manage Clinics</a></li>
                 <li><a href="#" class="nav-link" data-page="doctor_management">Manage Doctors</a></li>
                 <li><a href="#" class="nav-link" data-page="patient_management">Manage Patients</a></li>
-              {% endif %}
+
               <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a></li>
-            {% else %}
+
             <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
-            {% endif %}
+
           </ul>
         </nav>
       </header>
 
       <!-- This placeholder div holds the base URL for the static files -->
       <div id="base-url" style="display: none;">
-        {{ url_for('static', filename='') }}
+
       </div>
 
       <!-- Dynamic content will be injected into the main section -->
