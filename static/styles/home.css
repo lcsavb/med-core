@@ -65,7 +65,7 @@ body {
 
 .btn {
     display: inline-block;
-    padding: 0.75rem 1.5rem;
+    padding: 0.8rem 1rem;
     border-radius: 4px;
     background-color: #fafcfd;
     color: #000000;
@@ -109,15 +109,10 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     flex: 1;
     max-width: 30%;
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    opacity: 0;
-    transform: translateY(50px);
 }
 
-.feature-item.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+
+
 
 .feature-item i {
     font-size: 2rem;
