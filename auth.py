@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from db import engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
-from models import construct_user
 from functools import wraps
 import smtplib
 from email.mime.text import MIMEText
@@ -176,8 +175,7 @@ def authenticate_user(username, password):
             result = conn.execute(query, {'username': username})
             user_data = result.fetchone()  # Fetch one result
             
-            if user_data and check_password_hash(user_data['password_hash'], password):
-                return construct_user(user_data)
+            
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error during user authentication: {e}")
         raise  # Re-raise the exception after logging it
@@ -191,8 +189,7 @@ def get_user_by_username(username):
             result = conn.execute(query, {'username': username})
             user_data = result.fetchone()  # Fetch one result
             
-            if user_data:
-                return construct_user(user_data)
+            
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error getting user by username: {e}")
         raise  # Re-raise the exception after logging it

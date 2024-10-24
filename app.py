@@ -4,7 +4,7 @@ from flask_login import login_required, LoginManager
 from mysql.connector import Error
 from datetime import timedelta
 from auth import auth_bp, get_user_by_username
-from models import models_bp
+
 
 
 app = Flask(__name__)
@@ -14,7 +14,7 @@ app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7)
 
 # Blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(models_bp)
+
 
 # Secret key for session management
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
