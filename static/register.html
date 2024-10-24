@@ -1,7 +1,7 @@
-
 <div class="register-container">
   <h2>Register</h2>
   <form action="{{ url_for('auth.register') }}" method="post">
+
     <div class="form-group">
       <label for="username">Username:</label>
       <input
@@ -22,5 +22,48 @@
         required
       />
     </div>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" class="form-control" required />
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone:</label>
+      <input type="text" id="phone" name="phone" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label for="is_doctor">Are you a doctor?</label>
+      <select id="is_doctor" name="is_doctor" class="form-control" required>
+        <option value="0">No</option>
+        <option value="1">Yes</option>
+      </select>
+    </div>
     <button type="submit" class="btn btn-primary">Register</button>
   </form>
+  <p>
+    Already have an account?
+    <a
+      href="#"
+      class="nav-link"
+      data-page="login"
+      data-script="spa.js"
+      data-css="login.css"
+      >Login</a
+    >
+  </p>
+</div>
+<!-- Registration Success Container -->
+<div id="registerSuccessMessage" style="display: none">
+  <h2>Registration Successful!</h2>
+  <p>Welcome! Your account has been created.</p>
+  <button id="loginBtn" class="btn btn-secondary">Login</button>
+</div>
