@@ -32,7 +32,6 @@ def load_user(username):
     return user
 
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
