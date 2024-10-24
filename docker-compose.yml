@@ -39,6 +39,9 @@ services:
       - "80:80"
     volumes:
       - ./static:/usr/share/nginx/html
+      - ./static/scripts:/usr/share/nginx/scripts
+      - ./static/styles:/usr/share/nginx/styles
+
     depends_on:
       - flask
 

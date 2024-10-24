@@ -6,7 +6,9 @@
     <!-- Include CSS files here -->
     <link rel="stylesheet" href="/styles/styles.css" />
     <link rel="stylesheet" href="/styles/home.css" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="/scripts/jquery.js" defer></script>
+
     <script src="/scripts/routing.js" defer></script>
     <script src="/scripts/spa.js" defer></script>
   </head>
@@ -23,25 +25,9 @@
               <a href="#" class="nav-link" data-page="contact">Contact</a>
             </li>
 
-            <li>
-              <a href="#" class="nav-link" data-page="clinic_management"
-                >Manage Clinics</a
-              >
-            </li>
-            <li>
-              <a href="#" class="nav-link" data-page="doctor_management"
-                >Manage Doctors</a
-              >
-            </li>
-            <li>
-              <a href="#" class="nav-link" data-page="patient_management"
-                >Manage Patients</a
-              >
-            </li>
+            <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
+            <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="register.css">Register</a></li>
 
-            <li>
-              <a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a>
-            </li>
 
             <li>
               <a
