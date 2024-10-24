@@ -25,18 +25,28 @@
     <button type="submit" class="btn btn-primary">Login</button>
   </form>
   <p>
-    Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a>
+    Don't have an account?
+    <a
+      href="#"
+      class="nav-link"
+      data-page="register"
+      data-script="register.js"
+      data-css="register.css"
+      >Register</a
+    >
   </p>
 </div>
 
 <!-- Authentication Success Container -->
-<div id="authSuccessMessage" style="display:none;">
+<div id="authSuccessMessage" style="display: none">
   <h2>Authentication Successful!</h2>
   <p>Welcome back! You are now authenticated.</p>
   <button id="logoutBtn" class="btn btn-secondary">Logout</button>
 </div>
 
 <!-- Button to check authentication status -->
-<br/><br/>
-<button id="checkStatusBtn" class="btn btn-info">Check Authentication Status</button>
-<p id="statusResult" style="display:none;"></p>
+<br /><br />
+<button id="checkStatusBtn" class="btn btn-info">
+  Check Authentication Status
+</button>
+<p id="statusResult" style="display: none"></p>

@@ -1,24 +1,21 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Intersection Observer for Feature Items
-    const featureItems = document.querySelectorAll(".feature-item");
+document.addEventListener('DOMContentLoaded', function () {
+  const featureItems = document.querySelectorAll('.feature-item');
 
-    const observerOptions = {
-      threshold: 0.1,
-    };
-
-    const observer = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
-        }
+  const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+          if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target); // Stop observing once the item is visible
+          }
       });
-    }, observerOptions);
-
-    featureItems.forEach((item) => {
-      observer.observe(item);
-    });
+  }, {
+      threshold: 0.1 // Trigger when 10% of the item is visible
   });
+
+  featureItems.forEach(item => {
+      observer.observe(item);
+  });
+});
   document.addEventListener("DOMContentLoaded", function () {
     // Testimonials Carousel
     const testimonials = document.querySelectorAll(".testimonial-item");

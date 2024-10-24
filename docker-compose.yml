@@ -18,7 +18,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - .:/app
     environment:
@@ -39,6 +39,9 @@ services:
       - "80:80"
     volumes:
       - ./static:/usr/share/nginx/html
+      - ./static/scripts:/usr/share/nginx/scripts
+      - ./static/styles:/usr/share/nginx/styles
+
     depends_on:
       - flask
 

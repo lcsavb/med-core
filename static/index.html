@@ -6,7 +6,12 @@
     <!-- Include CSS files here -->
     <link rel="stylesheet" href="/styles/styles.css" />
     <link rel="stylesheet" href="/styles/home.css" />
+    <link rel="stylesheet" href="/styles/login.css" />
+
+    <script src="/scripts/jquery.js" defer></script>
     <script src="/scripts/routing.js" defer></script>
+    <script src="/scripts/register.js" defer></script>
+    <script src="scripts/home.js" defer></script>
   </head>
 
   <body>
@@ -17,19 +22,36 @@
             <!-- Each link now has a simple identifier (e.g., 'home', 'about') -->
             <li><a href="#" class="nav-link" data-page="home">Home</a></li>
             <li><a href="#" class="nav-link" data-page="about">About Us</a></li>
-            <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
+            <li>
+              <a href="#" class="nav-link" data-page="contact">Contact</a>
+            </li>
 
-            <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
-            <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="register.css">Register</a></li>
-
+            <li>
+              <a
+                href="#"
+                class="nav-link"
+                data-page="login"
+                data-script="login.js"
+                data-css="login.css"
+                >Login</a
+              >
+            </li>
+            <li>
+              <a
+                href="#"
+                class="nav-link"
+                data-page="register"
+                data-script="register.js"
+                data-css="login.css"
+                >Register</a
+              >
+            </li>
           </ul>
         </nav>
       </header>
 
       <!-- This placeholder div holds the base URL for the static files -->
-      <div id="base-url" style="display: none;">
-
-      </div>
+      <div id="base-url" style="display: none"></div>
 
       <!-- Dynamic content will be injected into the main section -->
       <main id="main-content">
