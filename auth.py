@@ -35,14 +35,16 @@ def generate_token(username):
 
 # Token verification decorator
 
+
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         token = request.headers.get('Authorization')
-        
+
         # Log the token for debugging purposes
         print("Authorization Header:", token)
 
+        # Check if the token is present
         if not token:
             return jsonify({'message': 'Token is missing!'}), 403
 
@@ -51,16 +53,17 @@ def token_required(f):
             if not token.startswith("Bearer "):
                 return jsonify({'message': 'Invalid token format!'}), 403
 
-            # Split the Bearer token
+            # Extract the token from the "Bearer <token>" format
             token = token.split(" ")[1]
             print("Token after split:", token)  # Log the extracted token
-
+            
             # Decode the JWT token
             data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
             print("Decoded token data:", data)  # Log the decoded data
             
             # Get user from decoded token
             current_user = get_user_by_username(data['username'])
+            
         except jwt.ExpiredSignatureError:
             print("Token expired!")  # Log if the token is expired
             return jsonify({'message': 'Token has expired!'}), 403
@@ -70,11 +73,13 @@ def token_required(f):
         except Exception as e:
             print(f"An error occurred: {e}")  # Log any other errors
             return jsonify({'message': 'Token is invalid!'}), 403
-
+        
         # Pass the current_user to the wrapped function
         return f(current_user, *args, **kwargs)
     
     return decorated_function
+
+
 
 
 
@@ -181,7 +186,6 @@ def authenticate_user(username, password):
             query = text("SELECT * FROM users WHERE username = :username")
             result = conn.execute(query, {'username': username})
             user_data = result.fetchone()  # Fetch one result
-            print(user_data)
             
             if user_data and check_password_hash(user_data['password_hash'], password):
                 return construct_user(user_data)
@@ -189,7 +193,6 @@ def authenticate_user(username, password):
         logging.error(f"Error during user authentication: {e}")
         raise  # Re-raise the exception after logging it
 
-# Get user function remains the same
 def get_user_by_username(username):
     """Get a user by their username."""
     try:
@@ -198,7 +201,8 @@ def get_user_by_username(username):
             result = conn.execute(query, {'username': username})
             user_data = result.fetchone()  # Fetch one result
             
-            
+            if user_data:
+                return construct_user(user_data)
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error getting user by username: {e}")
         raise  # Re-raise the exception after logging it
@@ -215,6 +219,7 @@ def check_auth_status(current_user):
 @token_required
 def protected_route(current_user):
     return jsonify({'message': f'Hello, {current_user.username}!'}), 200
+
 
 
 
