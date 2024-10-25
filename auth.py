@@ -1,16 +1,20 @@
-from flask import Blueprint, request, jsonify
 import datetime
+import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from functools import wraps
+
 import jwt
-from werkzeug.security import generate_password_hash, check_password_hash
-from db import engine
+from flask import Blueprint, jsonify, request
+from pymysql.err import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
-from functools import wraps
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from db import engine
 from models import construct_user
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import logging
+
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -125,7 +129,6 @@ def send_verification_email(recipient_email, code):
 
 
 
-# Register route for SPA
 @auth_bp.route('/register', methods=['POST'])
 def register():
     username = request.json.get('username')
@@ -138,16 +141,19 @@ def register():
     # Hash the password
     password_hash = generate_password_hash(password)
 
-    # Check if the username already exists
-    existing_user = get_user_by_username(username)
-    if existing_user:
-        return jsonify({'message': 'Username already taken!'}), 400
-
     try:
         save_user_in_db(username, password_hash, email, name, phone, is_doctor) 
         return jsonify({'message': 'User registered successfully!'}), 201
+    except IntegrityError as e:
+        if e.args[0] == 1062:
+            logging.error("Duplicated username detected")  # Duplicate entry error code
+            return jsonify({'message': 'Username already taken!'}), 400
+        return jsonify({'message': f'Error registering user: {e}'}), 500
     except RuntimeError as e:
         return jsonify({'message': f'Error registering user: {e}'}), 500
+
+
+
 
 # Save user function remains the same
 
