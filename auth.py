@@ -1,14 +1,16 @@
-from flask import Blueprint, render_template, request, jsonify, logging
-import jwt
+from flask import Blueprint, request, jsonify
 import datetime
+import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
 from functools import wraps
+from models import construct_user
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import logging
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -128,7 +130,10 @@ def send_verification_email(recipient_email, code):
 def register():
     username = request.json.get('username')
     password = request.json.get('password')
-    email = request.json.get('email')  
+    email = request.json.get('email')
+    name = request.json.get('name')
+    phone = request.json.get('phone')
+    is_doctor = request.json.get('is_doctor')  
 
     # Hash the password
     password_hash = generate_password_hash(password)
@@ -139,27 +144,29 @@ def register():
         return jsonify({'message': 'Username already taken!'}), 400
 
     try:
-        save_user_in_db(username, password_hash, email) 
+        save_user_in_db(username, password_hash, email, name, phone, is_doctor) 
         return jsonify({'message': 'User registered successfully!'}), 201
     except RuntimeError as e:
         return jsonify({'message': f'Error registering user: {e}'}), 500
 
 # Save user function remains the same
 
-def save_user_in_db(username, password_hash, email=None):
+def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
     """Insert a new user into the database using vanilla SQL and transaction handling."""
     try:
         with engine.begin() as conn:  # engine.begin() handles transaction management
             query = text("""
-                INSERT INTO users (username, password_hash, email, is_admin, is_doctor, created_at)
-                VALUES (:username, :password_hash, :email, :is_admin, :is_doctor, NOW())
+                INSERT INTO users (username, name, password_hash, email, phone, is_doctor, created_at)
+                VALUES (:username, :name, :password_hash, :email, :phone, :is_doctor, NOW())
             """)
             conn.execute(query, {
                 'username': username,
+                'name': name,
                 'password_hash': password_hash,
                 'email': email, 
-                'is_admin': False,
-                'is_doctor': False
+                'is_doctor': is_doctor,
+                'phone': phone
+
             })
     except SQLAlchemyError as e:
         logging.error(f"Transaction failed: {e}")
@@ -174,8 +181,10 @@ def authenticate_user(username, password):
             query = text("SELECT * FROM users WHERE username = :username")
             result = conn.execute(query, {'username': username})
             user_data = result.fetchone()  # Fetch one result
+            print(user_data)
             
-            
+            if user_data and check_password_hash(user_data['password_hash'], password):
+                return construct_user(user_data)
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error during user authentication: {e}")
         raise  # Re-raise the exception after logging it
