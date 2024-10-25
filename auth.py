@@ -103,6 +103,7 @@ def login():
         return jsonify({'message': 'Invalid username or password'}), 401
 
     
+
     
 def send_verification_email(recipient_email, code):
     """Send an email with the verification code to the user."""

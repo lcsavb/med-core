@@ -6,6 +6,8 @@ $(document).ready(function () {
     const username = $('#username').val();
     const password = $('#password').val();
 
+   
+
     try {
       // Send login request to the server
       const response = await fetch('/auth/login', {
@@ -38,6 +40,42 @@ $(document).ready(function () {
     }
   });
 
+  // Function to handle code form submission
+  $('#codeForm').on('submit', async function (event) {
+    event.preventDefault(); // Prevent form from submitting the default way
+
+    const authCode = $('#authCode').val();
+
+    try {
+      // Send code verification request to the server
+      const response = await fetch('/auth/verify-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: authCode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store the token in localStorage for future requests
+        localStorage.setItem('token', data.token);
+
+        // Hide the code input form and show success message
+        $('#codeContainer').hide();
+        $('#authSuccessMessage').show();
+      } else {
+        // Show an error message if code verification fails
+        alert(data.message || 'Code verification failed, please try again.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    }
+    });
   // Function to handle logout
   function logout() {
     // Remove the token from localStorage
