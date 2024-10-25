@@ -1,12 +1,12 @@
-document.getElementById('registerForm').addEventListener('submit', async function (event) {
+$('#registerForm').on('submit', async function (event) {
     event.preventDefault(); // Prevent form from submitting the default way
 
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const email = document.getElementById('email').value;
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-    const is_doctor = document.getElementById('is_doctor').value;
+    const username = $('#username').val();
+    const password = $('#password').val();
+    const email = $('#email').val();
+    const name = $('#name').val();
+    const phone = $('#phone').val();
+    const is_doctor = $('#is_doctor').val();
 
     try {
         // Send registration request to the server
@@ -25,16 +25,13 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             }),
         });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        
+        // Parse JSON response
         const data = await response.json();
 
         if (response.ok) {
             // Hide the registration form and show success message
-            document.getElementById('registerContainer').style.display = 'none';
-            document.getElementById('registerSuccessMessage').style.display = 'block';
+            $('#registerContainer').hide();
+            $('#registerSuccessMessage').show();
         } else {
             // Show an error message if registration fails
             alert(data.message || 'Registration failed, please try again.');

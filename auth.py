@@ -127,8 +127,6 @@ def send_verification_email(recipient_email, code):
         print("Error sending email:", e)
 
 
-
-
 @auth_bp.route('/register', methods=['POST'])
 def register():
     username = request.json.get('username')
@@ -142,41 +140,37 @@ def register():
     password_hash = generate_password_hash(password)
 
     try:
-        save_user_in_db(username, password_hash, email, name, phone, is_doctor) 
+        save_user_in_db(username, password_hash, email, name, phone, is_doctor)
         return jsonify({'message': 'User registered successfully!'}), 201
+
     except IntegrityError as e:
-        if e.args[0] == 1062:
-            logging.error("Duplicated username detected")  # Duplicate entry error code
+        if e.orig.args[0] == 1062:  # MySQL duplicate entry error code
+            logging.error("Duplicated username detected")
             return jsonify({'message': 'Username already taken!'}), 400
-        return jsonify({'message': f'Error registering user: {e}'}), 500
-    except RuntimeError as e:
-        return jsonify({'message': f'Error registering user: {e}'}), 500
+        logging.error(f"IntegrityError: {e}")
+        return jsonify({'message': 'An integrity error occurred.'}), 500
+
+    except Exception as e:
+        logging.error(f"Error registering user: {e}")
+        return jsonify({'message': 'Error registering user.'}), 500
 
 
-
-
-# Save user function remains the same
 
 def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
     """Insert a new user into the database using vanilla SQL and transaction handling."""
-    try:
-        with engine.begin() as conn:  # engine.begin() handles transaction management
-            query = text("""
-                INSERT INTO users (username, name, password_hash, email, phone, is_doctor, created_at)
-                VALUES (:username, :name, :password_hash, :email, :phone, :is_doctor, NOW())
-            """)
-            conn.execute(query, {
-                'username': username,
-                'name': name,
-                'password_hash': password_hash,
-                'email': email, 
-                'is_doctor': is_doctor,
-                'phone': phone
-
-            })
-    except SQLAlchemyError as e:
-        logging.error(f"Transaction failed: {e}")
-        raise RuntimeError(f"Transaction failed: {e}")
+    with engine.begin() as conn:  # engine.begin() handles transaction management
+        query = text("""
+            INSERT INTO users (username, name, password_hash, email, phone, is_doctor, created_at)
+            VALUES (:username, :name, :password_hash, :email, :phone, :is_doctor, NOW())
+        """)
+        conn.execute(query, {
+            'username': username,
+            'name': name,
+            'password_hash': password_hash,
+            'email': email,
+            'is_doctor': is_doctor,
+            'phone': phone
+        })
 
 
 # Authenticate user function remains the same

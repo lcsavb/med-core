@@ -3,7 +3,6 @@ import os
 
 from flask import Flask
 from flask_login import LoginManager
-from sqlalchemy import create_engine
 
 from auth import auth_bp, get_user_by_username
 from logging_config import configure_logging
