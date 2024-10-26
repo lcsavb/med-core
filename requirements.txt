@@ -13,3 +13,5 @@ Werkzeug==3.0.4
 mysql-connector-python
 SQLAlchemy==1.4.31
 PyJWT==2.3.0
+Flask-Limiter==3.8.0
+email-validator==1.1.3
