@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from flask_limiter.errors import RateLimitExceeded
 
 from auth import auth_bp, get_user_by_username
-from users_api import users_bp
+from routers.users_api import users_bp
 from logging_config import configure_logging
 from rate_limit import limiter
 
