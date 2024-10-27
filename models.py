@@ -65,6 +65,39 @@ def construct_user(user_data):
         roles=roles
     )
 
+def get_roles_by_user_id(user_id):
+    """Get roles assigned to a user by user ID based on flags in different tables."""
+    roles = ['admin']  # All users are admins by default
 
+    try:
+        with engine.connect() as conn:
+            # Check if the user is a healthcare professional
+            healthcare_query = text("""
+                SELECT is_admin FROM healthcare_professionals WHERE user_id = :user_id
+            """)
+            healthcare_result = conn.execute(healthcare_query, {'user_id': user_id})
+            healthcare_data = healthcare_result.fetchone()
+            if healthcare_data:
+                roles.append('doctor')  # All healthcare professionals are doctors by default
+                # If they are also an admin in their healthcare capacity
+                if healthcare_data['is_admin']:
+                    roles.append('admin')
+
+            # Check if the user is a front desk user with admin privileges
+            front_desk_query = text("""
+                SELECT is_admin FROM front_desk_users WHERE user_id = :user_id
+            """)
+            front_desk_result = conn.execute(front_desk_query, {'user_id': user_id})
+            front_desk_data = front_desk_result.fetchone()
+            if front_desk_data:
+                roles.append('front_desk')
+                if front_desk_data['is_admin']:
+                    roles.append('admin')
+
+    except SQLAlchemyError as e:
+        logging.error(f"Error getting roles for user: {e}")
+
+    # Return the list of roles for the given user
+    return roles
 
     

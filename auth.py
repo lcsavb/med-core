@@ -5,9 +5,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
 
-import jwt
 from flask import request, jsonify, make_response
 from flask_restful import Resource, Api
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from pymysql.err import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
@@ -18,65 +18,6 @@ from models import construct_user
 
 SECRET_KEY = "your-secret-key"
 
-# Token generation function
-def generate_token(username, roles):
-    token = jwt.encode(
-        {
-            'username': username,
-            'roles': roles,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)  # Token expires in 24 hours
-        },
-        SECRET_KEY,
-        algorithm='HS256'
-    )
-    return token
-
-# Token verification decorator
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization')
-
-        # Log the token for debugging purposes
-        print("Authorization Header:", token)
-
-        # Check if the token is present
-        if not token:
-            return make_response(jsonify({'message': 'Token is missing!'}), 403)
-
-        try:
-            # Ensure token is in "Bearer <token>" format
-            if not token.startswith("Bearer "):
-                return make_response(jsonify({'message': 'Invalid token format!'}), 403)
-
-            # Extract the token from the "Bearer <token>" format
-            token = token.split(" ")[1]
-            print("Token after split:", token)  # Log the extracted token
-            
-            # Decode the JWT token
-            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            print("Decoded token data:", data)  # Log the decoded data
-            
-            # Get user from decoded token
-            current_user = get_user_by_username(data['username'])
-            roles = data['roles']
-
-            print(current_user.roles)
-            
-        except jwt.ExpiredSignatureError:
-            print("Token expired!")  # Log if the token is expired
-            return make_response(jsonify({'message': 'Token has expired!'}), 403)
-        except jwt.InvalidTokenError:
-            print("Invalid token!")  # Log if the token is invalid
-            return make_response(jsonify({'message': 'Token is invalid!'}), 403)
-        except Exception as e:
-            print(f"An error occurred: {e}")  # Log any other errors
-            return make_response(jsonify({'message': 'Token is invalid!'}), 403)
-        
-        # Pass the current_user to the wrapped function
-        return f(current_user, *args, **kwargs)
-    
-    return decorated_function
 
 
 # Flask-RESTful Resources
@@ -88,14 +29,15 @@ class LoginResource(Resource):
         # Authenticate the user and construct a User object if valid
         user = authenticate_user(username, password)
         if user:
-            token = generate_token(user.username)
+            # Generate access token using Flask-JWT-Extended
+            access_token = create_access_token(identity={"username": user.username, "roles": user.roles})
             # Generate and set a verification code
             user.set_verification_code()
             
             # Send the verification code via email
             send_verification_email(user.email, user.verification_code)
             
-            return make_response(jsonify({'token': token, 'message': 'Login successful!'}), 200)
+            return make_response(jsonify({'access_token': access_token, 'message': 'Login successful!'}), 200)
         else:
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
 
@@ -129,7 +71,7 @@ class RegisterResource(Resource):
 
 
 class StatusResource(Resource):
-    @token_required
+    @jwt_required
     def get(current_user, *args, **kwargs):
         # Access the username of the current_user
         username = current_user.username 
@@ -141,7 +83,7 @@ class StatusResource(Resource):
 
 
 class ProtectedResource(Resource):
-    @token_required
+    @jwt_required
     def get(self, current_user):
         return make_response(jsonify({'message': repr(current_user)}), 200)
 
