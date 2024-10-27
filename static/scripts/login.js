@@ -1,5 +1,5 @@
 $(document).ready(function () {
-  // Function to handle login form submission UNTESTED JQUERY REFACTORED
+
   $('#loginForm').on('submit', async function (event) {
     event.preventDefault(); // Prevent form from submitting the default way
 
@@ -23,13 +23,13 @@ $(document).ready(function () {
 
       const data = await response.json();
 
-      if (response.ok) {
-        // Store the token in localStorage for future requests
-        localStorage.setItem('token', data.token);
+      // BEFORE ISSUING TOKEN, THE 2FA CODE MUST BE VERIFIED
 
-        // Hide the login form and show success message
+      if (response.ok) {
+        // Show the 2FA code input form and hide the login form
+
         $('#loginContainer').hide();
-        $('#authSuccessMessage').show();
+        $('#codeContainer').show();
       } else {
         // Show an error message if login fails
         alert(data.message || 'Login failed, please try again.');
