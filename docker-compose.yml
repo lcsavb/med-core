@@ -28,6 +28,7 @@ services:
       MYSQL_DATABASE: medcore_db
       MYSQL_USER: medcore
       MYSQL_PASSWORD: medcorepassword
+      JWT_SECRET_KEY: secretkey
     depends_on:
       - mariadb
 
