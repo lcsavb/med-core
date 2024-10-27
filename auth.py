@@ -222,8 +222,6 @@ def protected_route(current_user):
     return jsonify({'message': f'Hello, {current_user.username}!'}), 200
 
 
-
-
 # Logout route (optional if not using token storage)
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
