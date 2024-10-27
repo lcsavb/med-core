@@ -41,3 +41,4 @@ $('#registerForm').on('submit', async function (event) {
         alert('An error occurred, please try again.');
     }
 });
+

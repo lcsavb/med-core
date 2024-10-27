@@ -65,8 +65,8 @@ $(document).ready(function () {
         localStorage.setItem('token', data.token);
 
         // Hide the code input form and show success message
-        $('#codeContainer').hide();
-        $('#authSuccessMessage').show();
+        $('#loginContainer').hide();
+        $('#codeContainer').show();
       } else {
         // Show an error message if code verification fails
         alert(data.message || 'Code verification failed, please try again.');
