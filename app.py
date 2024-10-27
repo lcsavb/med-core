@@ -2,11 +2,12 @@ import logging
 import os
 
 from flask import Flask, jsonify
+from flask_restful import Api
 from flask_login import LoginManager
 from flask_limiter.errors import RateLimitExceeded
 
-from auth import auth_bp, get_user_by_username
-from routers.users_api import users_bp
+
+from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, get_user_by_username
 from logging_config import configure_logging
 from rate_limit import limiter
 
@@ -14,6 +15,7 @@ from rate_limit import limiter
 configure_logging()
 
 app = Flask(__name__)
+api = Api(app)
 
 # Rate limiter initialization and configuration to prevent abuse and brute force attacks
 limiter.init_app(app)
@@ -23,12 +25,26 @@ limiter.init_app(app)
 def rate_limit_handler(e):
     return jsonify({'message': 'Rate limit exceeded. Please try again later.'}), 429
 
+# Login Manager
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.init_app(app)
+
+# Define the user loader function for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    # Here, the user ID will be the one you used when logging in, so fetch the user by ID
+    return get_user_by_username(user_id)
+
 # Secret key for session management
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
 
-# Blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(users_bp, url_prefix='/users')
+# Resources
+api.add_resource(LoginResource, '/auth/login')
+api.add_resource(RegisterResource, '/auth/register')
+api.add_resource(LogoutResource, '/auth/logout')
+api.add_resource(StatusResource, '/auth/status')
+
 
 # Login Manager
 login_manager = LoginManager()
