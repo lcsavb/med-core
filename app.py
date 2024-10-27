@@ -3,12 +3,11 @@ import os
 
 from flask import Flask, jsonify
 from flask_restful import Api
-from flask_login import LoginManager
 from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
 
-from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, get_user_by_username
+from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, ProtectedResource
 from logging_config import configure_logging
 from rate_limit import limiter
 
@@ -37,6 +36,7 @@ api.add_resource(LoginResource, '/auth/login')
 api.add_resource(RegisterResource, '/auth/register')
 api.add_resource(LogoutResource, '/auth/logout')
 api.add_resource(StatusResource, '/auth/status')
+api.add_resource(ProtectedResource, '/auth/protected')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)

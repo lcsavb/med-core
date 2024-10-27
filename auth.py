@@ -33,11 +33,12 @@ class LoginResource(Resource):
             access_token = create_access_token(identity={"username": user.username, "roles": user.roles})
             # Generate and set a verification code
             user.set_verification_code()
+            print(f"Generated Access Token: {access_token}")  # Print the token for debugging
             
             # Send the verification code via email
             send_verification_email(user.email, user.verification_code)
             
-            return make_response(jsonify({'access_token': access_token, 'message': 'Login successful!'}), 200)
+            return make_response(jsonify({'token': access_token, 'message': 'Login successful!'}), 200)
         else:
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
 
@@ -71,21 +72,44 @@ class RegisterResource(Resource):
 
 
 class StatusResource(Resource):
-    @jwt_required
-    def get(current_user, *args, **kwargs):
-        # Access the username of the current_user
-        username = current_user.username 
-        
+    @jwt_required()
+    def get(self):
+        # Get the current user's identity from the JWT token
+        current_identity = get_jwt_identity()
+        print(current_identity)
+
+        # Assuming current_identity is a dictionary containing user information
+        username = current_identity.get("username")
+
         if username:
             return make_response(jsonify({'authenticated': True, 'username': username}), 200)
         else:
             return make_response(jsonify({'authenticated': False, 'message': 'User not authenticated'}), 403)
 
 
+
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import jsonify
+
 class ProtectedResource(Resource):
-    @jwt_required
-    def get(self, current_user):
-        return make_response(jsonify({'message': repr(current_user)}), 200)
+    @jwt_required()
+    def get(self):
+        # Extract the identity from the token
+        current_user = get_jwt_identity()
+
+        # Access roles from the current_user dictionary
+        roles = current_user.get("roles", "")
+        type(roles)
+
+        # Logic based on roles
+        if "admin" in roles:
+            return jsonify({"message": "Hello Admin! You have full access."})
+        elif "doctor" in roles:
+            return jsonify({"message": "Hello Doctor! You have restricted access."})
+        else:
+            return jsonify({"message": "Access denied! Insufficient role privileges."}), 403
+
+
 
 
 class LogoutResource(Resource):
@@ -128,15 +152,15 @@ def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
     """Insert a new user into the database using vanilla SQL and transaction handling."""
     with engine.begin() as conn:  # engine.begin() handles transaction management
         query = text("""
-            INSERT INTO users (username, name, password_hash, email, phone, is_doctor, created_at)
-            VALUES (:username, :name, :password_hash, :email, :phone, :is_doctor, NOW())
+            INSERT INTO users (username, name, password_hash, email, phone, user_roles, created_at)
+            VALUES (:username, :name, :password_hash, :email, :phone, :roles, NOW())
         """)
         conn.execute(query, {
             'username': username,
             'name': name,
             'password_hash': password_hash,
             'email': email,
-            'is_doctor': is_doctor,
+            'roles': ["doctor"] if is_doctor else [],
             'phone': phone
         })
 
