@@ -25,17 +25,6 @@ limiter.init_app(app)
 def rate_limit_handler(e):
     return jsonify({'message': 'Rate limit exceeded. Please try again later.'}), 429
 
-# Login Manager
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
-login_manager.init_app(app)
-
-# Define the user loader function for Flask-Login
-@login_manager.user_loader
-def load_user(user_id):
-    # Here, the user ID will be the one you used when logging in, so fetch the user by ID
-    return get_user_by_username(user_id)
-
 # Secret key for session management
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
 
