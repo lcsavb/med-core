@@ -29,6 +29,7 @@ class LoginResource(Resource):
 
         # Authenticate the user and construct a User object if valid
         user = authenticate_user(username, password)
+        print(user)
         if user:
             # Generate access token using Flask-JWT-Extended
             access_token = create_access_token(identity={"username": user.username, "roles": user.roles})

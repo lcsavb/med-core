@@ -27,6 +27,8 @@ $(document).ready(function () {
 
       if (response.ok) {
         // Show the 2FA code input form and hide the login form
+        // now the token is received in the data and it should be saved in the local storage
+        localStorage.setItem('token', data.token);
 
         $('#loginContainer').hide();
         $('#codeContainer').show();
@@ -47,17 +49,7 @@ $(document).ready(function () {
     const authCode = $('#authCode').val();
 
     try {
-      // Send code verification request to the server
-      const response = await fetch('/auth/verify-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code: authCode,
-        }),
-      });
-
+      
       const data = await response.json();
 
       if (response.ok) {
