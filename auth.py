@@ -1,6 +1,7 @@
 import datetime
 import logging
 import smtplib
+import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
@@ -160,7 +161,7 @@ def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
             'name': name,
             'password_hash': password_hash,
             'email': email,
-            'roles': ["doctor"] if is_doctor else [],
+            'roles': json.dumps(["doctor"] if is_doctor else []),  # Convert list to JSON string
             'phone': phone
         })
 
