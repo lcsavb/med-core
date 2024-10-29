@@ -1,7 +1,10 @@
 import datetime
+import time
 import logging
 import smtplib
 import json
+import threading
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
@@ -24,25 +27,53 @@ SECRET_KEY = "your-secret-key"
 # Flask-RESTful Resources
 class LoginResource(Resource):
     def post(self):
+        start_time = time.time()  # Start time for the entire function
+
         username = request.json.get('username')
         password = request.json.get('password')
 
+        # Measure time to get request data
+        request_time = time.time()
+        print(f"Time to get request data: {request_time - start_time:.4f} seconds")
+
         # Authenticate the user and construct a User object if valid
+        auth_start_time = time.time()
         user = authenticate_user(username, password)
+        auth_end_time = time.time()
+        print(f"Time to authenticate user: {auth_end_time - auth_start_time:.4f} seconds")
+
+        # Print the user object for debugging
         print(user)
         if user:
             # Generate access token using Flask-JWT-Extended
+            token_start_time = time.time()
             access_token = create_access_token(identity={"username": user.username, "roles": user.roles})
+            token_end_time = time.time()
+            print(f"Time to generate access token: {token_end_time - token_start_time:.4f} seconds")
+
             # Generate and set a verification code
+            verification_start_time = time.time()
             user.set_verification_code()
+            verification_end_time = time.time()
+            print(f"Time to set verification code: {verification_end_time - verification_start_time:.4f} seconds")
+
             print(f"Generated Access Token: {access_token}")  # Print the token for debugging
-            
-            # Send the verification code via email
-            send_verification_email(user.email, user.verification_code)
-            
+
+            # Send the verification code via email in a separate thread
+            email_thread = threading.Thread(target=send_verification_email, args=(user.email, user.verification_code))
+            email_thread.start()
+
+            print(f'Email sent to {user.email} with verification code: {user.verification_code}')
+
+            end_time = time.time()  # End time for the entire function
+            print(f"Total time for LoginResource.post: {end_time - start_time:.4f} seconds")
+
             return make_response(jsonify({'token': access_token, 'message': 'Login successful!'}), 200)
         else:
+            end_time = time.time()  # End time for the entire function
+            print(f"Total time for LoginResource.post (failed): {end_time - start_time:.4f} seconds")
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
+
 
 
 class RegisterResource(Resource):
@@ -179,7 +210,7 @@ def authenticate_user(username, password):
                 return construct_user(user_data)
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error during user authentication: {e}")
-        raise  # Re-raise the exception after logging it
+        raise  # Re-raise the exception after logging it access_token = create_access_token(identity={"username": user
 
 
 def get_user_by_username(username):
