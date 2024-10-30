@@ -1,12 +1,17 @@
 import datetime
+import time
 import logging
 import smtplib
+import json
+import threading
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
 
-import jwt
-from flask import Blueprint, jsonify, request
+from flask import request, jsonify, make_response
+from flask_restful import Resource, Api
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from pymysql.err import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
@@ -15,96 +20,138 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from db import engine
 from models import construct_user
 
-
-
-auth_bp = Blueprint('auth', __name__)
-
 SECRET_KEY = "your-secret-key"
 
-# Token generation function
-def generate_token(username):
-    token = jwt.encode(
-        {
-            'username': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)  # Token expires in 24 hours
-        },
-        SECRET_KEY,
-        algorithm='HS256'
-    )
-    return token
-
-# Token verification decorator
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = request.headers.get('Authorization')
+# Flask-RESTful Resources
+class LoginResource(Resource):
+    def post(self):
+        start_time = time.time()  # Start time for the entire function
 
-        # Log the token for debugging purposes
-        print("Authorization Header:", token)
+        username = request.json.get('username')
+        password = request.json.get('password')
 
-        # Check if the token is present
-        if not token:
-            return jsonify({'message': 'Token is missing!'}), 403
+        # Measure time to get request data
+        request_time = time.time()
+        print(f"Time to get request data: {request_time - start_time:.4f} seconds")
+
+        # Authenticate the user and construct a User object if valid
+        auth_start_time = time.time()
+        user = authenticate_user(username, password)
+        auth_end_time = time.time()
+        print(f"Time to authenticate user: {auth_end_time - auth_start_time:.4f} seconds")
+
+        # Print the user object for debugging
+        print(user)
+        if user:
+            # Generate access token using Flask-JWT-Extended
+            token_start_time = time.time()
+            access_token = create_access_token(identity={"username": user.username, "roles": user.roles})
+            token_end_time = time.time()
+            print(f"Time to generate access token: {token_end_time - token_start_time:.4f} seconds")
+
+            # Generate and set a verification code
+            verification_start_time = time.time()
+            user.set_verification_code()
+            verification_end_time = time.time()
+            print(f"Time to set verification code: {verification_end_time - verification_start_time:.4f} seconds")
+
+            print(f"Generated Access Token: {access_token}")  # Print the token for debugging
+
+            # Send the verification code via email in a separate thread
+            email_thread = threading.Thread(target=send_verification_email, args=(user.email, user.verification_code))
+            email_thread.start()
+
+            print(f'Email sent to {user.email} with verification code: {user.verification_code}')
+
+            end_time = time.time()  # End time for the entire function
+            print(f"Total time for LoginResource.post: {end_time - start_time:.4f} seconds")
+
+            return make_response(jsonify({'token': access_token, 'message': 'Login successful!'}), 200)
+        else:
+            end_time = time.time()  # End time for the entire function
+            print(f"Total time for LoginResource.post (failed): {end_time - start_time:.4f} seconds")
+            return make_response(jsonify({'message': 'Invalid username or password'}), 401)
+
+
+
+class RegisterResource(Resource):
+    def post(self):
+        username = request.json.get('username')
+        password = request.json.get('password')
+        email = request.json.get('email')
+        name = request.json.get('name')
+        phone = request.json.get('phone')
+        is_doctor = request.json.get('is_doctor')  
+
+        # Hash the password
+        password_hash = generate_password_hash(password)
 
         try:
-            # Ensure token is in "Bearer <token>" format
-            if not token.startswith("Bearer "):
-                return jsonify({'message': 'Invalid token format!'}), 403
+            save_user_in_db(username, password_hash, email, name, phone, is_doctor)
+            return make_response(jsonify({'message': 'User registered successfully!'}), 201)
 
-            # Extract the token from the "Bearer <token>" format
-            token = token.split(" ")[1]
-            print("Token after split:", token)  # Log the extracted token
-            
-            # Decode the JWT token
-            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            print("Decoded token data:", data)  # Log the decoded data
-            
-            # Get user from decoded token
-            current_user = get_user_by_username(data['username'])
-            
-        except jwt.ExpiredSignatureError:
-            print("Token expired!")  # Log if the token is expired
-            return jsonify({'message': 'Token has expired!'}), 403
-        except jwt.InvalidTokenError:
-            print("Invalid token!")  # Log if the token is invalid
-            return jsonify({'message': 'Token is invalid!'}), 403
+        except IntegrityError as e:
+            if e.orig.args[0] == 1062:  # MySQL duplicate entry error code
+                logging.error("Duplicated username detected")
+                return make_response(jsonify({'message': 'Username already taken!'}), 400)
+            logging.error(f"IntegrityError: {e}")
+            return make_response(jsonify({'message': 'An integrity error occurred.'}), 500)
+
         except Exception as e:
-            print(f"An error occurred: {e}")  # Log any other errors
-            return jsonify({'message': 'Token is invalid!'}), 403
-        
-        # Pass the current_user to the wrapped function
-        return f(current_user, *args, **kwargs)
-    
-    return decorated_function
+            logging.error(f"Error registering user: {e}")
+            return make_response(jsonify({'message': 'Error registering user.'}), 500)
+
+
+class StatusResource(Resource):
+    @jwt_required()
+    def get(self):
+        # Get the current user's identity from the JWT token
+        current_identity = get_jwt_identity()
+        print(current_identity)
+
+        # Assuming current_identity is a dictionary containing user information
+        username = current_identity.get("username")
+
+        if username:
+            return make_response(jsonify({'authenticated': True, 'username': username}), 200)
+        else:
+            return make_response(jsonify({'authenticated': False, 'message': 'User not authenticated'}), 403)
+
+
+
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import jsonify
+
+class ProtectedResource(Resource):
+    @jwt_required()
+    def get(self):
+        # Extract the identity from the token
+        current_user = get_jwt_identity()
+
+        # Access roles from the current_user dictionary
+        roles = current_user.get("roles", "")
+        type(roles)
+
+        # Logic based on roles
+        if "admin" in roles:
+            return jsonify({"message": "Hello Admin! You have full access."})
+        elif "doctor" in roles:
+            return jsonify({"message": "Hello Doctor! You have restricted access."})
+        else:
+            return jsonify({"message": "Access denied! Insufficient role privileges."}), 403
 
 
 
 
+class LogoutResource(Resource):
+    def post(self):
+        # No session to clear, tokens are stateless, just remove token from client-side
+        return make_response(jsonify({'message': 'Logged out successfully.'}), 200)
 
-@auth_bp.route('/login', methods=['POST'])
-def login():
-    username = request.json.get('username')
-    password = request.json.get('password')
 
-    # Authenticate the user and construct a User object if valid
-    user = authenticate_user(username, password)
-    if user:
-        token = generate_token(user.username)
-        # Generate and set a verification code
-        user.set_verification_code()
-        
-        # Send the verification code via email
-        send_verification_email(user.email, user.verification_code)
-        
-        return jsonify({'token': token, 'message': 'Login successful!'}), 200
-    else:
-        return jsonify({'message': 'Invalid username or password'}), 401
-
-    
-
-    
+# Utility Functions
 def send_verification_email(recipient_email, code):
     """Send an email with the verification code to the user."""
     sender_email = "medcorelogin@gmail.com"
@@ -133,53 +180,24 @@ def send_verification_email(recipient_email, code):
         print("Error sending email:", e)
 
 
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    username = request.json.get('username')
-    password = request.json.get('password')
-    email = request.json.get('email')
-    name = request.json.get('name')
-    phone = request.json.get('phone')
-    is_doctor = request.json.get('is_doctor')  
-
-    # Hash the password
-    password_hash = generate_password_hash(password)
-
-    try:
-        save_user_in_db(username, password_hash, email, name, phone, is_doctor)
-        return jsonify({'message': 'User registered successfully!'}), 201
-
-    except IntegrityError as e:
-        if e.orig.args[0] == 1062:  # MySQL duplicate entry error code
-            logging.error("Duplicated username detected")
-            return jsonify({'message': 'Username already taken!'}), 400
-        logging.error(f"IntegrityError: {e}")
-        return jsonify({'message': 'An integrity error occurred.'}), 500
-
-    except Exception as e:
-        logging.error(f"Error registering user: {e}")
-        return jsonify({'message': 'Error registering user.'}), 500
-
-
-
+# Authentication and User Management Functions
 def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
     """Insert a new user into the database using vanilla SQL and transaction handling."""
     with engine.begin() as conn:  # engine.begin() handles transaction management
         query = text("""
-            INSERT INTO users (username, name, password_hash, email, phone, is_doctor, created_at)
-            VALUES (:username, :name, :password_hash, :email, :phone, :is_doctor, NOW())
+            INSERT INTO users (username, name, password_hash, email, phone, user_roles, created_at)
+            VALUES (:username, :name, :password_hash, :email, :phone, :roles, NOW())
         """)
         conn.execute(query, {
             'username': username,
             'name': name,
             'password_hash': password_hash,
             'email': email,
-            'is_doctor': is_doctor,
+            'roles': json.dumps(["doctor"] if is_doctor else []),  # Convert list to JSON string
             'phone': phone
         })
 
 
-# Authenticate user function remains the same
 def authenticate_user(username, password):
     """Authenticate a user based on username and password."""
     try:
@@ -192,7 +210,8 @@ def authenticate_user(username, password):
                 return construct_user(user_data)
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error during user authentication: {e}")
-        raise  # Re-raise the exception after logging it
+        raise  # Re-raise the exception after logging it access_token = create_access_token(identity={"username": user
+
 
 def get_user_by_username(username):
     """Get a user by their username."""
@@ -207,23 +226,3 @@ def get_user_by_username(username):
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error getting user by username: {e}")
         raise  # Re-raise the exception after logging it
-
-@auth_bp.route('/status', methods=['GET'])
-@token_required
-def check_auth_status(current_user):
-      
-    # Return the authenticated status along with the username
-    return jsonify({'authenticated': True, 'username': current_user.username}), 200
-
-    
-@auth_bp.route('/protected')
-@token_required
-def protected_route(current_user):
-    return jsonify({'message': f'Hello, {current_user.username}!'}), 200
-
-
-# Logout route (optional if not using token storage)
-@auth_bp.route('/logout', methods=['POST'])
-def logout():
-    # No session to clear, tokens are stateless, just remove token from client-side
-    return jsonify({'message': 'Logged out successfully.'}), 200

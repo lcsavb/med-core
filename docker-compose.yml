@@ -14,6 +14,7 @@ services:
       - ./db_data:/var/lib/mysql  # Ensure the data is stored in db_data directory inside your project
 
   flask:
+    image: backend
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,6 +29,7 @@ services:
       MYSQL_DATABASE: medcore_db
       MYSQL_USER: medcore
       MYSQL_PASSWORD: medcorepassword
+      JWT_SECRET_KEY: secretkey
     depends_on:
       - mariadb
 
@@ -42,6 +44,12 @@ services:
       - ./static/scripts:/usr/share/nginx/scripts
       - ./static/styles:/usr/share/nginx/styles
 
+    depends_on:
+      - flask
+
+  pytest:
+    image: backend
+    command: pytest --junitxml=report.xml
     depends_on:
       - flask
 

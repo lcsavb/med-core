@@ -157,6 +157,7 @@ CREATE TABLE `healthcare_professionals` (
   `is_doctor` tinyint(1) NOT NULL,
   `is_admin` tinyint(1) NOT NULL,
   `profession` varchar(50) NOT NULL,
+  `full_name` varchar(300) NOT NULL,
   `specialty` varchar(100) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
@@ -326,7 +327,7 @@ CREATE TABLE `users` (
   `name` varchar(100) NOT NULL, -- Admin's name
   `email` varchar(255) NOT NULL, -- Admin's email
   `phone` varchar(20) DEFAULT NULL, -- Admin's phone number
-  `is_doctor` tinyint(1) NOT NULL, -- Is this user a doctor? (1 = yes, 0 = no)
+  `user_roles` JSON NOT NULL DEFAULT 'admin', -- Store user roles as JSON array
   `password_hash` varchar(255) NOT NULL, -- Securely stored password hash
   `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active', -- Account status
   `last_login` datetime DEFAULT NULL, -- Track the last login time

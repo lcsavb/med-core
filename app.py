@@ -1,32 +1,55 @@
 import logging
 import os
 
-from flask import Flask
-from flask_login import LoginManager
+from flask import Flask, jsonify
+from flask_restful import Api
+from flask_limiter.errors import RateLimitExceeded
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
-from auth import auth_bp, get_user_by_username
+
+from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, ProtectedResource
+from routers.clinics import ClinicsResource
+from routers.clinics import ClinicsResource
+from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
+from routers.patients import PatientsResource, PatientsByDoctorsResource
+from routers.schedules import DoctorScheduleResource
+from routers.appointments import DoctorAppointmentsResource
 from logging_config import configure_logging
+from rate_limit import limiter
 
 
 configure_logging()
 
+# Flask application initialization
 app = Flask(__name__)
+api = Api(app)
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")  # Change this!
+jwt = JWTManager(app)
+
+# Rate limiter initialization and configuration to prevent abuse and brute force attacks
+limiter.init_app(app)
+
+# Error handler for rate limit exceeded
+@app.errorhandler(RateLimitExceeded)
+def rate_limit_handler(e):
+    return jsonify({'message': 'Rate limit exceeded. Please try again later.'}), 429
 
 # Secret key for session management
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
 
-# Blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-
-# Login Manager
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
-login_manager.init_app(app)
-
-# Define the user loader function
-@login_manager.user_loader
-def load_user(username):
-    return get_user_by_username(username)
+# Resources
+api.add_resource(LoginResource, '/auth/login')
+api.add_resource(RegisterResource, '/auth/register')
+api.add_resource(LogoutResource, '/auth/logout')
+api.add_resource(StatusResource, '/auth/status')
+api.add_resource(ProtectedResource, '/auth/protected')
+api.add_resource(ClinicsResource, '/api/clinics/<int:clinic_id>')
+api.add_resource(ProfessionalsResource, '/api/clinics/<int:clinic_id>/doctors')
+api.add_resource(ProfessionalByIdResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>')
+api.add_resource(PatientsResource, '/api/clinics/<int:clinic_id>/patients')
+api.add_resource(PatientsByDoctorsResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/patients')
+api.add_resource(DoctorScheduleResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/schedules')
+api.add_resource(DoctorAppointmentsResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/<int:schedule_id>/appointments')
 
 
 if __name__ == '__main__':
