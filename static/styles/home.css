@@ -2,15 +2,14 @@
 
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #def2ff 0%, #5493ff 100%);
+   
+    background: linear-gradient(170deg, #d2e2ff 100%, #387cf1 100%);
 }
 
 .hero {
-    color: #b250d0;
+    
     text-align: center;
     padding: 2rem; /* Match the padding of .container */
     background: linear-gradient(135deg, rgba(43, 95, 215, 0.9) 0%, rgba(154, 186, 217, 0.9) 100%);
@@ -24,7 +23,6 @@ body {
     margin: 0 auto;
     position: relative;
     z-index: 1;
-   
     padding: 2rem;
     border-radius: 15px;
     
@@ -48,7 +46,7 @@ body {
 .hero h1 {
     font-size: 3.5rem;
     margin-bottom: 1rem;
-    color: #ffffff; /* Dark purple color */
+    color: #ffffff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     position: relative;
     display: inline-block;
@@ -92,7 +90,7 @@ body {
 .features h2 {
     font-size: 2.5rem;
     margin-bottom: 2rem;
-    color: #4b0082; /* Dark purple color */
+    color: #0e3d8d; /* Dark purple color */
 }
 
 .feature-list, .testimonial-list {
@@ -116,7 +114,7 @@ body {
 
 .feature-item i {
     font-size: 2rem;
-    color: #4b0082; /* Dark purple color */
+    color: #0e3d8d;/* Dark purple color */
     margin-bottom: 1rem;
 }
 
@@ -133,12 +131,13 @@ body {
 
 
 /* General Section Styles */
-.features, .testimonials, .benefits, .contact {
+.features, .benefits, .contact {
     padding: 2rem 1rem;
     text-align: center;
 }
 
 .features h2, .benefits h2, .contact h2 {
+    color: #0e3d8d;
     font-size: 2rem;
     margin-bottom: 1.5rem;
 }
@@ -156,7 +155,7 @@ body {
 .testimonials h2 {
     font-size: 2.5rem;
     margin-bottom: 2rem;
-    color: #4b0082; /* Dark purple color */
+    color: #0e3d8d; 
 }
 
 .testimonial-item {
@@ -240,7 +239,7 @@ body {
 .about-us h1, .team h2, .mission h2, .contact h2 {
     font-size: 2.5rem;
     margin-bottom: 1.5rem;
-    color: #4b0082; /* Dark purple color */
+    color: #0e3d8d; 
 }
 
 .team-members {
