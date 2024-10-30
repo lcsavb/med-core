@@ -157,6 +157,7 @@ CREATE TABLE `healthcare_professionals` (
   `is_doctor` tinyint(1) NOT NULL,
   `is_admin` tinyint(1) NOT NULL,
   `profession` varchar(50) NOT NULL,
+  `full_name` varchar(300) NOT NULL,
   `specialty` varchar(100) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
