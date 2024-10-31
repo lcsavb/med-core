@@ -17,6 +17,19 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `alembic_version`
+--
+
+DROP TABLE IF EXISTS `alembic_version`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `alembic_version` (
+  `version_num` varchar(32) NOT NULL,
+  PRIMARY KEY (`version_num`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `appointments`
 --
 
@@ -26,17 +39,25 @@ DROP TABLE IF EXISTS `appointments`;
 CREATE TABLE `appointments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `patient_id` int(11) NOT NULL,
-  `schedule_id` int(11) NOT NULL,
+  `schedule_id` int(11) DEFAULT NULL,
   `medical_records_id` int(11) DEFAULT NULL,
-  `appointment_time` datetime NOT NULL,
+  `appointment_date` datetime DEFAULT NULL,
+  `clinic_id` int(11) DEFAULT NULL,
+  `healthcare_professional_id` int(11) DEFAULT NULL,
+  `confirmed` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `medical_records_id` (`medical_records_id`),
   KEY `patient_id` (`patient_id`),
   KEY `schedule_id` (`schedule_id`),
+  KEY `fk_clinic` (`clinic_id`),
+  KEY `fk_healthcare_professionals` (`healthcare_professional_id`),
   CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`medical_records_id`) REFERENCES `medical_records` (`id`),
   CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`),
-  CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`),
+  CONSTRAINT `fk_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_doctor` FOREIGN KEY (`healthcare_professional_id`) REFERENCES `healthcare_professionals` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_healthcare_professionals` FOREIGN KEY (`healthcare_professional_id`) REFERENCES `healthcare_professionals` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -56,7 +77,7 @@ CREATE TABLE `care_link` (
   KEY `patient_id` (`patient_id`),
   CONSTRAINT `care_link_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `healthcare_professionals` (`id`),
   CONSTRAINT `care_link_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,35 +94,20 @@ CREATE TABLE `clinics` (
   `address_number` varchar(10) NOT NULL,
   `address_complement` varchar(100) DEFAULT NULL,
   `zip` varchar(20) NOT NULL,
-  `city` VARCHAR(100) NOT NULL,
-  `state` CHAR(2) NOT NULL, -- Standard two-letter abbreviation (e.g., SP, RJ)
-  `country` CHAR(2) NOT NULL, -- ISO COUNTRY CODE (e.g., BR, US)
+  `city` varchar(100) NOT NULL,
+  `state` char(2) NOT NULL,
+  `country` char(2) NOT NULL,
   `phone` varchar(20) NOT NULL,
-  `email` VARCHAR(255) DEFAULT NULL,
-  `website` VARCHAR(255) DEFAULT NULL,
-  `clinic_type` ENUM('Public', 'Private', 'Mixed') NOT NULL DEFAULT 'Private', -- Type of clinic
-  `admin_user_id` int(11) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `website` varchar(255) DEFAULT NULL,
+  `clinic_type` enum('Public','Private','Mixed') NOT NULL DEFAULT 'Private',
+  `user_id` int(11) NOT NULL,
   `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `admin_user_id` (`admin_user_id`),
-  CONSTRAINT `clinics_ibfk_1` FOREIGN KEY (`admin_user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `id` (`user_id`),
+  CONSTRAINT `clinics_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
-DROP TABLE IF EXISTS `clinic_identifiers`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-
--- This table stores identifiers based on the country's requirements
-
-CREATE TABLE `clinic_identifiers` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `clinic_id` INT NOT NULL, -- Foreign key referencing the clinic
-  `identifier_type` ENUM('CNES', 'CNPJ' 'NPI', 'HRB') NOT NULL, -- The type of identifier
-  CONSTRAINT `clinic_identifiers_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics`(`id`)
-);
-
-
 
 --
 -- Table structure for table `employment_link`
@@ -120,7 +126,7 @@ CREATE TABLE `employment_link` (
   KEY `doctor_id` (`doctor_id`),
   CONSTRAINT `employment_link_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`),
   CONSTRAINT `employment_link_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `healthcare_professionals` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,26 +170,13 @@ CREATE TABLE `healthcare_professionals` (
   `address` text NOT NULL,
   `address_number` varchar(10) NOT NULL,
   `address_complement` varchar(100) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `user_id` int(11) NOT NULL,
+  `created_at` text DEFAULT NULL,
+  `clinic_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `healthcare_professionals_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `clinic_id` (`clinic_id`),
+  CONSTRAINT `healthcare_professionals_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
-DROP TABLE IF EXISTS `professional_identifiers`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-
-CREATE TABLE `professional_identifiers` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `professional_id` INT NOT NULL, -- Foreign key referencing the healthcare professional
-  `identifier_type` ENUM('CRM', 'State_Medical_License', 'DEA', 'NPI', 'License', 'Certification') NOT NULL, -- Type of identifier
-  `identifier_value` VARCHAR(50) NOT NULL, -- Actual identifier value (e.g., CRM number, DEA registration)
-  CONSTRAINT `professional_identifiers_ibfk_1` FOREIGN KEY (`professional_id`) REFERENCES `healthcare_professionals`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 --
 -- Table structure for table `medical_records`
@@ -201,27 +194,30 @@ CREATE TABLE `medical_records` (
   `evolution` text NOT NULL,
   `pdf_file` blob DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
-  `hash` CHAR(64) NOT NULL,
+  `hash` char(64) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `patient_id` (`patient_id`),
   CONSTRAINT `medical_records_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `patient_identifiers`
+--
 
--- Trigger to prevent updates to medical records
-
-DELIMITER $$
-CREATE TRIGGER prevent_medical_records_update
-BEFORE UPDATE ON medical_records
-FOR EACH ROW
-BEGIN
-  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Updates to medical records are not allowed';
-END$$
-DELIMITER ;
-
-REVOKE UPDATE ON medical_records FROM PUBLIC;
-
+DROP TABLE IF EXISTS `patient_identifiers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `patient_identifiers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `patient_id` int(11) NOT NULL,
+  `identifier_type` enum('SUS','SSN','Insurance_ID','Passport_Number','CPF') NOT NULL,
+  `identifier_value` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `patient_identifiers_ibfk_1` (`patient_id`),
+  CONSTRAINT `patient_identifiers_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `patients`
@@ -243,32 +239,57 @@ CREATE TABLE `patients` (
   `zip` varchar(20) NOT NULL,
   `phone` varchar(20) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `status` ENUM('active', 'inactive', 'deceased') NOT NULL DEFAULT 'active', -- Patient status
-  `emergency_contact_name` varchar(100) DEFAULT NULL, -- Emergency contact person
-  `emergency_contact_phone` varchar(20) DEFAULT NULL, -- Emergency contact phone number
-  `nationality` varchar(50) DEFAULT NULL, -- Nationality of the patient
-  `language` varchar(50) DEFAULT NULL, -- Preferred language
-  `insurance_provider` varchar(100) DEFAULT NULL, -- Insurance company/provider name
-  `insurance_policy_number` varchar(50) DEFAULT NULL, -- Insurance policy number
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP, -- Record creation time
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Last update time
+  `status` enum('active','inactive','deceased') NOT NULL DEFAULT 'active',
+  `emergency_contact_name` varchar(100) DEFAULT NULL,
+  `emergency_contact_phone` varchar(20) DEFAULT NULL,
+  `nationality` varchar(50) DEFAULT NULL,
+  `language` varchar(50) DEFAULT NULL,
+  `insurance_provider` varchar(100) DEFAULT NULL,
+  `insurance_policy_number` varchar(50) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `professional_identifiers`
+--
+
+DROP TABLE IF EXISTS `professional_identifiers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `professional_identifiers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `professional_id` int(11) NOT NULL,
+  `identifier_type` enum('CRM','State_Medical_License','DEA','NPI','License','Certification') NOT NULL,
+  `identifier_value` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `professional_identifiers_ibfk_1` (`professional_id`),
+  CONSTRAINT `professional_identifiers_ibfk_1` FOREIGN KEY (`professional_id`) REFERENCES `healthcare_professionals` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `schedule_dates`
+--
 
-DROP TABLE IF EXISTS `patient_identifiers`;
+DROP TABLE IF EXISTS `schedule_dates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-
-CREATE TABLE `patient_identifiers` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `patient_id` INT NOT NULL, -- Foreign key referencing the patients table
-  `identifier_type` ENUM('SUS', 'SSN', 'Insurance_ID', 'Passport_Number', 'CPF') NOT NULL, -- Type of identifier
-  `identifier_value` VARCHAR(50) NOT NULL, -- Actual identifier value (e.g., SUS number or SSN)
-  CONSTRAINT `patient_identifiers_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
+CREATE TABLE `schedule_dates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `schedule_id` int(11) NOT NULL,
+  `schedule_date` date NOT NULL,
+  `break_start` time DEFAULT NULL,
+  `break_end` time DEFAULT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `schedule_id` (`schedule_id`),
+  CONSTRAINT `schedule_dates_ibfk_1` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `schedules`
@@ -283,36 +304,16 @@ CREATE TABLE `schedules` (
   `clinic_id` int(11) NOT NULL,
   `available_from` time NOT NULL,
   `available_to` time NOT NULL,
-  `appointment_interval` INT NOT NULL, -- Interval in minutes
-  `start_date` DATE DEFAULT NULL, -- Start date for recurring schedules
-  `end_date` DATE DEFAULT NULL, -- End date for recurring schedules
+  `appointment_interval` int(11) NOT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `clinic_id` (`clinic_id`),
   KEY `doctor_id` (`doctor_id`),
   CONSTRAINT `schedules_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`),
   CONSTRAINT `schedules_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `healthcare_professionals` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
--- Table structure for schedule dates
-
-DROP TABLE IF EXISTS `schedule_dates`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `schedule_dates` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `schedule_id` int(11) NOT NULL, -- Foreign key to the schedules table
-  `schedule_date` DATE NOT NULL, -- Specific date for the doctor's availability
-  `break_start` TIME DEFAULT NULL, -- Start time for the doctor's break
-  `break_end` TIME DEFAULT NULL, -- End time for the doctor's break
-  `start_time` TIME NOT NULL, -- Start time for the doctor's availability
-  `end_time` TIME NOT NULL, -- End time for the doctor's availability
-  PRIMARY KEY (`id`),
-  KEY `schedule_id` (`schedule_id`),
-  CONSTRAINT `schedule_dates_ibfk_1` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 --
 -- Table structure for table `users`
@@ -323,22 +324,21 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL, -- Username for login
-  `name` varchar(100) NOT NULL, -- Admin's name
-  `email` varchar(255) NOT NULL, -- Admin's email
-  `phone` varchar(20) DEFAULT NULL, -- Admin's phone number
-  `user_roles` JSON NOT NULL DEFAULT 'admin', -- Store user roles as JSON array
-  `password_hash` varchar(255) NOT NULL, -- Securely stored password hash
-  `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active', -- Account status
-  `last_login` datetime DEFAULT NULL, -- Track the last login time
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP, -- Track when the account was created
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Track when account details were last updated
+  `username` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `user_roles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'admin' CHECK (json_valid(`user_roles`)),
+  `password_hash` varchar(255) NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `last_login` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`), -- Ensure unique usernames
-  UNIQUE KEY `email` (`email`) -- Ensure unique emails
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -349,4 +349,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-22 20:22:44
+-- Dump completed on 2024-10-31 21:59:06

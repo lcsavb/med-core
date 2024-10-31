@@ -13,7 +13,7 @@ from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
 from routers.patients import PatientsResource, PatientsByDoctorsResource
 from routers.schedules import DoctorScheduleResource
-from routers.appointments import DoctorAppointmentsResource
+from routers.appointments import AppointmentsResource
 from logging_config import configure_logging
 from rate_limit import limiter
 
@@ -49,7 +49,7 @@ api.add_resource(ProfessionalByIdResource, '/api/clinics/<int:clinic_id>/doctors
 api.add_resource(PatientsResource, '/api/clinics/<int:clinic_id>/patients')
 api.add_resource(PatientsByDoctorsResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/patients')
 api.add_resource(DoctorScheduleResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/schedules')
-api.add_resource(DoctorAppointmentsResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/<int:schedule_id>/appointments')
+api.add_resource(AppointmentsResource, '/api/appointments/')
 
 
 if __name__ == '__main__':

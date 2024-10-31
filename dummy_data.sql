@@ -17,6 +17,42 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `user_roles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'admin' CHECK (json_valid(`user_roles`)),
+  `password_hash` varchar(255) NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `last_login` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` (`id`, `username`, `name`, `email`, `phone`, `user_roles`, `password_hash`, `status`, `last_login`, `created_at`, `updated_at`) VALUES (8,'clinic_owner','Clinic Owner','owner@example.com','1234567890','[\"admin\"]','hashed_password_placeholder','active',NULL,'2024-10-30 13:24:49','2024-10-30 13:24:49');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+--
 -- Table structure for table `appointments`
 --
 
@@ -100,12 +136,12 @@ CREATE TABLE `clinics` (
   `email` varchar(255) DEFAULT NULL,
   `website` varchar(255) DEFAULT NULL,
   `clinic_type` enum('Public','Private','Mixed') NOT NULL DEFAULT 'Private',
-  `admin_user_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `admin_user_id` (`admin_user_id`),
-  CONSTRAINT `clinics_ibfk_1` FOREIGN KEY (`admin_user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `id` (`user_id`),
+  CONSTRAINT `clinics_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -114,7 +150,7 @@ CREATE TABLE `clinics` (
 
 LOCK TABLES `clinics` WRITE;
 /*!40000 ALTER TABLE `clinics` DISABLE KEYS */;
-INSERT INTO `clinics` (`id`, `name`, `address`, `address_number`, `address_complement`, `zip`, `city`, `state`, `country`, `phone`, `email`, `website`, `clinic_type`, `admin_user_id`, `created_at`) VALUES (1,'Health Plus Clinic','123 Wellness Street','100',NULL,'12345','Cityville','CV','US','555-6789','contact@healthplus.com',NULL,'Private',8,NULL);
+INSERT INTO `clinics` (`id`, `name`, `address`, `address_number`, `address_complement`, `zip`, `city`, `state`, `country`, `phone`, `email`, `website`, `clinic_type`, `user_id`, `created_at`) VALUES (1,'Health Plus Clinic','123 Wellness Street','100',NULL,'12345','Cityville','CV','US','555-6789','contact@healthplus.com',NULL,'Private',8,NULL);
 /*!40000 ALTER TABLE `clinics` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -199,10 +235,10 @@ CREATE TABLE `healthcare_professionals` (
   `address_number` varchar(10) NOT NULL,
   `address_complement` varchar(100) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
-  `user_id` int(11) NOT NULL,
+  `clinic_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `healthcare_professionals_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  KEY `clinic_id` (`clinic_id`),
+  CONSTRAINT `healthcare_professionals_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -255,14 +291,15 @@ UNLOCK TABLES;
 /*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER prevent_medical_records_update
+
+CREATE TRIGGER prevent_medical_records_update
 BEFORE UPDATE ON medical_records
 FOR EACH ROW
 BEGIN
   SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Updates to medical records are not allowed';
-END */;;
-DELIMITER ;
+END;
+
+
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
@@ -303,29 +340,34 @@ DROP TABLE IF EXISTS `patients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `patients` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `first_name` varchar(50) NOT NULL,
-  `last_name` varchar(50) NOT NULL,
-  `picture` blob DEFAULT NULL,
-  `date_of_birth` date NOT NULL,
-  `gender` varchar(10) NOT NULL,
-  `address` text NOT NULL,
-  `address_number` varchar(10) NOT NULL,
-  `address_complement` varchar(100) DEFAULT NULL,
-  `zip` varchar(20) NOT NULL,
-  `phone` varchar(20) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `status` enum('active','inactive','deceased') NOT NULL DEFAULT 'active',
-  `emergency_contact_name` varchar(100) DEFAULT NULL,
-  `emergency_contact_phone` varchar(20) DEFAULT NULL,
-  `nationality` varchar(50) DEFAULT NULL,
-  `language` varchar(50) DEFAULT NULL,
-  `insurance_provider` varchar(100) DEFAULT NULL,
-  `insurance_policy_number` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` INT int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `first_name` VARCHAR(50) NOT NULL,
+  `last_name` VARCHAR(50) NOT NULL,
+  `picture` BLOB DEFAULT NULL,
+  `date_of_birth` DATE NOT NULL,
+  `gender` VARCHAR(10) NOT NULL,
+  `address` TEXT NOT NULL,
+  `address_number` VARCHAR(10) NOT NULL,
+  `address_complement` VARCHAR(100) DEFAULT NULL,
+  `zip` VARCHAR(20) NOT NULL,
+  `phone` VARCHAR(20) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  `status` ENUM('active','inactive','deceased') NOT NULL DEFAULT 'active',
+  `emergency_contact_name` VARCHAR(100) DEFAULT NULL,
+  `emergency_contact_phone` VARCHAR(20) DEFAULT NULL,
+  `nationality` VARCHAR(50) DEFAULT NULL,
+  `language` VARCHAR(50) DEFAULT NULL,
+  `insurance_provider` VARCHAR(100) DEFAULT NULL,
+  `insurance_policy_number` VARCHAR(50) DEFAULT NULL,
+  `clinic_id` INT int(11) NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_patient_clinic`
+    FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`)
+    ON DELETE SET NULL
+    ON UPDATE RESTRICT
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -430,40 +472,6 @@ INSERT INTO `schedules` (`id`, `doctor_id`, `clinic_id`, `available_from`, `avai
 /*!40000 ALTER TABLE `schedules` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `users`
---
-
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `user_roles` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'admin' CHECK (json_valid(`user_roles`)),
-  `password_hash` varchar(255) NOT NULL,
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
-  `last_login` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` (`id`, `username`, `name`, `email`, `phone`, `user_roles`, `password_hash`, `status`, `last_login`, `created_at`, `updated_at`) VALUES (8,'clinic_owner','Clinic Owner','owner@example.com','1234567890','[\"admin\"]','hashed_password_placeholder','active',NULL,'2024-10-30 13:24:49','2024-10-30 13:24:49');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping routines for database 'medcore_db'

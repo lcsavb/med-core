@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from flask_restful import Resource
+from flask import jsonify
 from sqlalchemy import text
 from db import engine
 
@@ -26,7 +29,12 @@ class ProfessionalByIdResource(Resource):
         with engine.connect() as connection:
             result = connection.execute(query, {"clinic_id": clinic_id, "healthcare_professional_id": healthcare_professional_id})
             professional = result.fetchone()
+
             if professional:
-                return dict(professional), 200
+                # This is necessary because the datetime object is not serializable
+                # BUT IT IS NOT EFFICIENT, THE PLAN IS TO CREATE A VIEW IN THE DATABASE
+                professional_dict = {column: (value.strftime("%Y-%m-%d %H:%M:%S") if isinstance(value, datetime) else value)
+                                     for column, value in professional.items()}
+                return professional_dict, 200
             else:
                 return {"message": "Professional not found"}, 404
