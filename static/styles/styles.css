@@ -200,19 +200,24 @@ footer {
 .date-picker-container {
     display: flex;
     align-items: center;
+    margin-bottom: 20px;
   }
   
   .date-picker-button {
-    background: none;
+    background-color: #007bff;
+    color: white;
     border: none;
-    font-size: 1.5rem;
+    padding: 10px 20px;
+    font-size: 1rem;
     cursor: pointer;
     margin-left: 10px;
+    border-radius: 5px;
+  }
+  
+  .date-picker-button:hover {
+    background-color: #0056b3;
   }
   
   .date-picker-input {
-    position: absolute;
-    top: 50px; /* Adjust as needed */
-    right: 20px; /* Adjust as needed */
-    z-index: 1000;
+    display: none;
   }
