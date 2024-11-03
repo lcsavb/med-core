@@ -74,6 +74,7 @@ footer {
 /* Doctor's Dashboard */
 .dashboard-container, .patient-details-container {
     background-color: #fff;
+    border: 1px solid #ccc;
     padding: 20px;
     margin: 20px auto;
     border-radius: 8px;
@@ -159,6 +160,7 @@ footer {
 }
 
 #backToSchedule {
+    font-size: medium;
     margin-bottom: 20px;
     padding: 10px 20px;
     background-color: #007bff;
@@ -194,3 +196,23 @@ footer {
     color: #000000;
     text-align: left;
 }
+
+.date-picker-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .date-picker-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .date-picker-input {
+    position: absolute;
+    top: 50px; /* Adjust as needed */
+    right: 20px; /* Adjust as needed */
+    z-index: 1000;
+  }
