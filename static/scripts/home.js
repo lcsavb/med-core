@@ -48,4 +48,9 @@ $(document).ready(function () {
   // Intersection Observer for Hero Heading
   const heroHeading = $(".hero-heading")[0];
   if (heroHeading) observer.observe(heroHeading);
+
+  // a function to select the get_started button from the down and redirect to the register page
+  $('#get_started').on('click', function () {
+    window.location.href = '/register';
+  });
 });
