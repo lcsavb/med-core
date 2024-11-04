@@ -41,12 +41,13 @@ $(document).ready(function () {
         const selectedDate = $(this).val();
         console.log('Selected date:', selectedDate);
         $('#currentDate').text(`Current Date: ${new Date(selectedDate).toLocaleDateString()}`);
+        loadPatientData(selectedDate);
         $('#datePicker').hide(); // Hide the date picker after selection
     });
 
   
       // Load the list of patients
-      const patientListElement = $('#patientList');
+    const patientListElement = $('#patientList');
     function loadPatientList(filteredAppointments) {
         patientListElement.empty();
         filteredAppointments.forEach(appointment => {
@@ -94,5 +95,15 @@ $(document).ready(function () {
         console.log('Search term:', searchTerm, 'Filtered appointments:', filteredAppointments);
     });
    
-    loadPatientData();
+    // Initial load of patient data for the current date
+    const initialDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+    $('#datePicker').val(initialDate); // Set the date picker to the current date
+    loadPatientData(initialDate);
+
+    // Debugging: Check if the date picker container is shown
+    if ($('.date-picker-container').length) {
+        console.log('Date picker container is shown on the dashboard');
+    } else {
+        console.log('Date picker container is NOT shown on the dashboard');
+    }
 });

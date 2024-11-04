@@ -16,7 +16,7 @@
 #loginContainer, #registerContainer{
    
 
-    border: #818181 0.5px inset;
+    border: 1px solid #ccc;
     /* Make a shadow of a border*/
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     justify-content: center;
@@ -155,7 +155,7 @@ a:hover {
     background-color: #fefefe;
     margin: 15% auto; /* 15% from the top and centered */
     padding: 20px;
-    border: 1px solid #888;
+    border: 1px solid #ccc;
     width: 80%; /* Could be more or less, depending on screen size */
     max-width: 500px; /* Maximum width */
     border-radius: 10px;
