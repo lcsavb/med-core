@@ -79,9 +79,22 @@ footer {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 80%;
+    height: 70vh;
 }
 
+.patient-list-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
 
+.header-time, .header-name {
+    flex: 1;
+    text-align: left;
+}
 
 #currentDate {
     font-size: 1.2rem;
@@ -91,15 +104,57 @@ footer {
 #patientList {
     list-style: none;
     padding: 0;
+    
 }
 
 #patientList .patient-item {
+    display: flex;
+    justify-content: space-between;
     padding: 10px;
     border-bottom: 1px solid #ddd;
     cursor: pointer;
 }
 
+#patientList .patient-item .patient-time {
+    flex: 1;
+    text-align: left;
+    
+}
+
+#patientList .patient-item .patient-name {
+    flex: 1;
+    text-align: left;
+    border-left: 1px solid #ddd; /* Thin line in the middle */
+    padding-left: 10px; /* Space between the line and the text */
+}
+
 #patientList .patient-item:hover {
+    background-color: #f0f0f0;
+}
+
+#searchInput {
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    /* border: 2px solid #595959; */
+    font-size: 15px;
+}
+
+.scrollable-list {
+    max-height: 450px; /* Adjust the height as needed */
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.patient-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.patient-item:hover {
     background-color: #f0f0f0;
 }
 
@@ -115,4 +170,27 @@ footer {
 
 #backToSchedule:hover {
     background-color: #0056b3;
+}
+
+/* Anamnesis description styles */
+
+#anamnesisContent {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    text-align: left;
+}
+
+#anamnesisContent p {
+    margin: 10px 0;
+    line-height: 1.6;
+    color: #555;
+}
+
+#anamnesisContent h3 {
+    margin-bottom: 15px;
+    color: #000000;
+    text-align: left;
 }

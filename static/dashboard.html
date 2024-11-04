@@ -1,32 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Healthcare Provider Dashboard</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <section>
-      <div class="dashboard-container" id="dashboardContainer">
-        <div class="row">
-          <div class="col-md-12">
-            <h1>Dashboard</h1>
-            <p id="currentDate"></p>
-            <div id="patient List"></div>
-          </div>
-        </div>
+<div class="dashboard-container" id="dashboardContainer">
+  <div class="row">
+    <div class="col-md-12">
+      <h1>Dashboard</h1>
+      <p id="currentDate"></p>
+      <input type="text" id="searchInput" placeholder="Search patients..." />
+      <div class="patient-list-header">
+        <span class="header-time">Time</span>
+        <span class="header-name">Patient</span>
       </div>
-    </section>
+      <div id="patientList" class="scrollable-list"></div>
+    </div>
+  </div>
+</div>
 
-    <section id="patientDetails" style="display: none">
-      <div class="patient-details-container">
-        <button id="backToSchedule">Back to Schedule</button>
-        <h2>Anamnesis</h2>
-        <div id="anamnesisContent"></div>
-      </div>
-    </section>
+<div id="patientDetails" style="display: none">
+  <div class="patient-details-container">
+    <button id="backToSchedule">Back to Schedule</button>
+    <h2>Anamnesis</h2>
+    <div id="anamnesisContent"></div>
+  </div>
+</div>
 
-    <script src="dashboard.js"></script>
-  </body>
-</html>
+<script src="dashboard.js"></script>
