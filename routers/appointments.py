@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from marshmallow import ValidationError, Schema, fields
+from marshmallow import ValidationError, Schema, fields, post_dump
 from flask import request
 from flask_restful import Resource
-
-from db import query
+from sqlalchemy import create_engine, text  # Import text for raw SQL queries
+from db import engine
 
 class AppointmentQuerySchema(Schema):
     clinicId = fields.Int(required=True, 
@@ -15,49 +15,63 @@ class AppointmentQuerySchema(Schema):
     date = fields.Date(required=True, 
                        format='%Y-%m-%d', 
                        error_messages={"required": "Date is required in YYYY-MM-DD format."})
-
-from flask import request
-from flask_restful import Resource
-from datetime import datetime
-from db import query  # Ensure this imports the modified query function
+    
+    
 
 class AppointmentsResource(Resource):
     def get(self):
-        # Define the expected query parameters
-        clinic_id = 1
-        healthcare_professional_id = 4
-        appointment_date = '2024-10-31'
+        # Validate and extract query parameters using the schema
+        schema = AppointmentQuerySchema()
+        try:
+            args = schema.load(request.args)
+        except ValidationError as err:
+            return {"errors": err.messages}, 400  # Return validation errors if any
 
-        # Retrieve appointments based on hardcoded criteria
-        appointments = self.retrieve(
-            clinic_id=clinic_id,
-            healthcare_professional_id=healthcare_professional_id,
-            appointment_date=datetime.strptime(appointment_date, '%Y-%m-%d').date()
-        )
+        # Retrieve parameters
+        clinic_id = args['clinicId']
+        doctor_id = args['doctorId']
+        appointment_date = args['date'].strftime('%Y-%m-%d')  # Convert to string for SQL query
+
+        # Retrieve appointments based on parameters from the API request
+        appointments = self.retrieve(clinic_id, doctor_id, appointment_date)
+
+        # Convert datetime fields for JSON serialization if needed
 
         # Convert datetime fields for JSON serialization
+        # I have to improve that later 
         for appointment in appointments:
-            if isinstance(appointment['appointment_date'], datetime):
-                appointment['appointment_date'] = appointment['appointment_date'].strftime('%Y-%m-%d %H:%M:%S')
+            # Convert timedelta to a time string in HH:MM format
+            if isinstance(appointment['time'], timedelta):
+                total_seconds = int(appointment['time'].total_seconds())
+                hours, remainder = divmod(total_seconds, 3600)
+                minutes, _ = divmod(remainder, 60)
+                appointment['time'] = f"{hours:02}:{minutes:02}"  # Format as HH:MM
 
         return {"appointments": appointments}, 200
 
-    def retrieve(self, clinic_id, healthcare_professional_id, appointment_date):
-        # Define the standard query
+    def retrieve(self, clinic_id, doctor_id, appointment_date):
+        # Define the SQL query using raw SQL
         base_query = """
-            SELECT id, patient_id, schedule_id, medical_records_id, appointment_date, clinic_id, healthcare_professional_id
-            FROM appointments
-            WHERE clinic_id = :clinic_id
-              AND healthcare_professional_id = :healthcare_professional_id
-              AND DATE(appointment_date) = :appointment_date
-            ORDER BY appointment_date
-        """
+        SELECT id, patient_id, schedule_id, medical_records_id, time, clinic_id, doctor_id,
+               first_name, last_name, picture, gender, address, address_number,
+               address_complement, zip, phone, email
+        FROM vw_app2  -- Using the view
+        WHERE clinic_id = :clinic_id
+          AND doctor_id = :doctor_id
+          AND day = :appointment_date  -- Filter using 'day'
+        ORDER BY day  -- Ordering by 'day'
+    """
+    
+        # Execute the query
+        with engine.connect() as connection:
+            result = connection.execute(text(base_query), {
+                "clinic_id": clinic_id,
+                "doctor_id": doctor_id,
+                "appointment_date": appointment_date  # Ensure this matches the 'day' column
+            })
+    
+            # Fetch all results
+            appointments = [dict(row) for row in result]
+    
+        return appointments
 
-        # Format parameters and execute the query
-        params = {
-            "clinic_id": clinic_id,
-            "healthcare_professional_id": healthcare_professional_id,
-            "appointment_date": appointment_date.strftime('%Y-%m-%d')
-        }
-
-        return query(base_query, **params)
