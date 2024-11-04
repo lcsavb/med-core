@@ -1,12 +1,10 @@
 $(document).ready(function () {
-
+  // Handle login form submission
   $('#loginForm').on('submit', async function (event) {
     event.preventDefault(); // Prevent form from submitting the default way
 
     const username = $('#username').val();
     const password = $('#password').val();
-
-   
 
     try {
       // Send login request to the server
@@ -24,12 +22,11 @@ $(document).ready(function () {
       const data = await response.json();
 
       // BEFORE ISSUING TOKEN, THE 2FA CODE MUST BE VERIFIED
-
       if (response.ok) {
-        // Show the 2FA code input form and hide the login form
-        // now the token is received in the data and it should be saved in the local storage
-        localStorage.setItem('token', data.token);
+        // Store the temporary token in localStorage
+        localStorage.setItem('temporary_token', data.temporary_token);
 
+        // Show the 2FA code input form and hide the login form
         $('#loginContainer').hide();
         $('#codeContainer').show();
       } else {
@@ -46,31 +43,46 @@ $(document).ready(function () {
   $('#codeForm').on('submit', async function (event) {
     event.preventDefault(); // Prevent form from submitting the default way
 
-    const authCode = $('#authCode').val();
+    const authCode = $('#authCode').val(); // Get the entered 2FA code
+    const temporaryToken = localStorage.getItem('temporary_token'); // Retrieve the temporary token
 
     try {
-      
+      const response = await fetch('/auth/verify-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${temporaryToken}` // Include the temporary token in the Authorization header
+        },
+        body: JSON.stringify({
+          verification_code: authCode // Send the 2FA code for verification
+        }),
+      });
+
       const data = await response.json();
 
       if (response.ok) {
-        // Store the token in localStorage for future requests
-        localStorage.setItem('token', data.token);
-
-        // Hide the code input form and show success message
-        $('#loginContainer').hide();
-        $('#codeContainer').show();
+        // Handle success, save the access token
+        localStorage.setItem('token', data.access_token); // Save the access token
+        localStorage.removeItem('temporary_token'); // Remove the temporary token after successful authentication
+        $('#codeContainer').hide();
+        $('#authSuccessMessage').show();
       } else {
-        // Show an error message if code verification fails
+        // Handle failure
         alert(data.message || 'Code verification failed, please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
       alert('An error occurred. Please try again.');
     }
-    });
+  });
+
+
+
+
   // Function to handle logout
   function logout() {
-    // Remove the token from localStorage
+    // Remove the tokens from localStorage
+    localStorage.removeItem('temporary_token');
     localStorage.removeItem('token');
 
     // Show the login form and hide the success message
@@ -91,23 +103,23 @@ $(document).ready(function () {
       method: 'GET',
       headers: headers,
     })
-    .then(response => response.json())
-    .then(data => {
-      $('#statusResult').show();
+      .then(response => response.json())
+      .then(data => {
+        $('#statusResult').show();
 
-      // Display the message directly from the backend
-      if (data.message) {
-        $('#statusResult').text(data.message);
-      } else if (data.authenticated) {
-        $('#statusResult').text(`Authenticated as: ${data.username}`);
-      } else {
-        $('#statusResult').text('Not authenticated.');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred while checking authentication status.');
-    });
+        // Display the message directly from the backend
+        if (data.message) {
+          $('#statusResult').text(data.message);
+        } else if (data.authenticated) {
+          $('#statusResult').text(`Authenticated as: ${data.username}`);
+        } else {
+          $('#statusResult').text('Not authenticated.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while checking authentication status.');
+      });
   }
 
   // Attach the checkAuthStatus function to the "Check Status" button
@@ -123,23 +135,22 @@ $(document).ready(function () {
         'Authorization': `Bearer ${token}`
       }
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.authenticated) {
-        // Token is valid, hide login form and show success message
-        $('#loginContainer').hide();
-        $('#authSuccessMessage').show();
-      } else {
-        // If not authenticated, remove token and show login form
-        localStorage.removeItem('token');
-        $('#loginContainer').show();
-        $('#authSuccessMessage').hide();
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred while checking authentication status.');
-    });
+      .then(response => response.json())
+      .then(data => {
+        if (data.authenticated) {
+          // Token is valid, hide login form and show success message
+          $('#loginContainer').hide();
+          $('#authSuccessMessage').show();
+        } else {
+          // If not authenticated, remove token and show login form
+          localStorage.removeItem('token');
+          $('#loginContainer').show();
+          $('#authSuccessMessage').hide();
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while checking authentication status.');
+      });
   }
 });
-

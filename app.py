@@ -7,7 +7,7 @@ from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
 
-from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, ProtectedResource
+from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, ProtectedResource, Verify2FAResource
 from routers.clinics import ClinicsResource
 from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
@@ -43,6 +43,7 @@ api.add_resource(RegisterResource, '/auth/register')
 api.add_resource(LogoutResource, '/auth/logout')
 api.add_resource(StatusResource, '/auth/status')
 api.add_resource(ProtectedResource, '/auth/protected')
+api.add_resource(Verify2FAResource, '/auth/verify-2fa')
 api.add_resource(ClinicsResource, '/api/clinics/<int:clinic_id>')
 api.add_resource(ProfessionalsResource, '/api/clinics/<int:clinic_id>/doctors')
 api.add_resource(ProfessionalByIdResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>')

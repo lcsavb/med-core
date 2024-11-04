@@ -24,10 +24,17 @@ SECRET_KEY = "your-secret-key"
 
 
 
-# Flask-RESTful Resources
+from flask import request, jsonify, make_response
+from flask_restful import Resource
+from flask_jwt_extended import create_access_token
+from werkzeug.security import generate_password_hash, check_password_hash
+import threading
+import time
+from datetime import timedelta
+
 class LoginResource(Resource):
     def post(self):
-        start_time = time.time()  # Start time for the entire function
+        start_time = time.time()
 
         username = request.json.get('username')
         password = request.json.get('password')
@@ -36,28 +43,31 @@ class LoginResource(Resource):
         request_time = time.time()
         print(f"Time to get request data: {request_time - start_time:.4f} seconds")
 
-        # Authenticate the user and construct a User object if valid
+        # Authenticate the user
         auth_start_time = time.time()
         user = authenticate_user(username, password)
         auth_end_time = time.time()
         print(f"Time to authenticate user: {auth_end_time - auth_start_time:.4f} seconds")
 
-        # Print the user object for debugging
-        print(user)
         if user:
-            # Generate access token using Flask-JWT-Extended
-            token_start_time = time.time()
-            access_token = create_access_token(identity={"username": user.username, "roles": user.roles})
-            token_end_time = time.time()
-            print(f"Time to generate access token: {token_end_time - token_start_time:.4f} seconds")
-
-            # Generate and set a verification code
+            # Set a verification code
             verification_start_time = time.time()
             user.set_verification_code()
             verification_end_time = time.time()
             print(f"Time to set verification code: {verification_end_time - verification_start_time:.4f} seconds")
 
-            print(f"Generated Access Token: {access_token}")  # Print the token for debugging
+            # Hash the verification code
+            verification_code_hash = generate_password_hash(str(user.verification_code))
+            verification_code_hash = str(verification_code_hash)
+
+            # Create a temporary token with the username and hashed code
+            temporary_token = create_access_token(
+                identity={
+                    "username": user.username,
+                    "verification_code_hash": verification_code_hash
+                },
+                expires_delta=timedelta(minutes=5)  # Token expires in 10 minutes
+            )
 
             # Send the verification code via email in a separate thread
             email_thread = threading.Thread(target=send_verification_email, args=(user.email, user.verification_code))
@@ -65,14 +75,51 @@ class LoginResource(Resource):
 
             print(f'Email sent to {user.email} with verification code: {user.verification_code}')
 
-            end_time = time.time()  # End time for the entire function
+            end_time = time.time()
             print(f"Total time for LoginResource.post: {end_time - start_time:.4f} seconds")
 
-            return make_response(jsonify({'token': access_token, 'message': 'Login successful!'}), 200)
+            return make_response(jsonify({'temporary_token': temporary_token, 'message': 'Verification code sent!'}), 200)
         else:
-            end_time = time.time()  # End time for the entire function
+            end_time = time.time()
             print(f"Total time for LoginResource.post (failed): {end_time - start_time:.4f} seconds")
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
+        
+
+from flask import request, jsonify, make_response
+from flask_restful import Resource
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from werkzeug.security import check_password_hash
+import logging
+
+import jwt  # Import PyJWT
+from flask import request, jsonify, make_response
+from werkzeug.security import check_password_hash
+
+SECRET_KEY = "your_secret_key_here"  # Replace with your secret key
+
+class Verify2FAResource(Resource):
+    @jwt_required()  # This decorator validates the JWT token
+    def post(self):
+        # Retrieve the entered verification code from the request
+        entered_code = request.json.get('verification_code')
+
+        # Decode the temporary token and get the user identity data
+        decoded_token = get_jwt_identity()
+        username = decoded_token.get("username")
+        verification_code_hash = decoded_token.get("verification_code_hash")
+
+        # Check the entered code against the hash
+        if check_password_hash(verification_code_hash, str(entered_code)):
+            # If successful, generate a new access token
+            access_token = create_access_token(identity={"username": username, "role":"oi"})
+            return make_response(jsonify({'access_token': access_token, 'message': '2FA successful!'}), 200)
+        else:
+            # If the code is incorrect, return an error
+            return make_response(jsonify({'message': 'Invalid verification code'}), 401)
+
+
+
+
 
 
 
