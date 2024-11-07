@@ -1,3 +1,4 @@
+console.log('home.js loaded');
 $(document).ready(function () {
   // Feature Items Intersection Observer
   const observerOptions = {
@@ -14,6 +15,9 @@ $(document).ready(function () {
   }, observerOptions);
 
   $(".feature-item").each(function () {
+    observer.observe(this);
+  });
+  $(".testimonial-item").each(function () {
     observer.observe(this);
   });
 
@@ -49,8 +53,4 @@ $(document).ready(function () {
   const heroHeading = $(".hero-heading")[0];
   if (heroHeading) observer.observe(heroHeading);
 
-  // a function to select the get_started button from the down and redirect to the register page
-  $('#get_started').on('click', function () {
-    window.location.href = '/register';
-  });
 });
