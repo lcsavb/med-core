@@ -8,6 +8,7 @@ import threading
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
+from datetime import timedelta
 
 from flask import request, jsonify, make_response
 from flask_restful import Resource, Api
@@ -22,15 +23,6 @@ from models import construct_user
 
 SECRET_KEY = "your-secret-key"
 
-
-
-from flask import request, jsonify, make_response
-from flask_restful import Resource
-from flask_jwt_extended import create_access_token
-from werkzeug.security import generate_password_hash, check_password_hash
-import threading
-import time
-from datetime import timedelta
 
 class LoginResource(Resource):
     def post(self):
@@ -85,18 +77,6 @@ class LoginResource(Resource):
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
         
 
-from flask import request, jsonify, make_response
-from flask_restful import Resource
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
-from werkzeug.security import check_password_hash
-import logging
-
-import jwt  # Import PyJWT
-from flask import request, jsonify, make_response
-from werkzeug.security import check_password_hash
-
-SECRET_KEY = "your_secret_key_here"  # Replace with your secret key
-
 class Verify2FAResource(Resource):
     @jwt_required()  # This decorator validates the JWT token
     def post(self):
@@ -116,11 +96,6 @@ class Verify2FAResource(Resource):
         else:
             # If the code is incorrect, return an error
             return make_response(jsonify({'message': 'Invalid verification code'}), 401)
-
-
-
-
-
 
 
 class RegisterResource(Resource):
@@ -166,10 +141,6 @@ class StatusResource(Resource):
         else:
             return make_response(jsonify({'authenticated': False, 'message': 'User not authenticated'}), 403)
 
-
-
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask import jsonify
 
 class ProtectedResource(Resource):
     @jwt_required()
