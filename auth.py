@@ -26,36 +26,25 @@ SECRET_KEY = "your-secret-key"
 
 class LoginResource(Resource):
     def post(self):
-        start_time = time.time()
-
         username = request.json.get('username')
         password = request.json.get('password')
 
-        # Measure time to get request data
-        request_time = time.time()
-        print(f"Time to get request data: {request_time - start_time:.4f} seconds")
-
         # Authenticate the user
-        auth_start_time = time.time()
         user = authenticate_user(username, password)
-        auth_end_time = time.time()
-        print(f"Time to authenticate user: {auth_end_time - auth_start_time:.4f} seconds")
 
         if user:
             # Set a verification code
-            verification_start_time = time.time()
+
             user.set_verification_code()
-            verification_end_time = time.time()
-            print(f"Time to set verification code: {verification_end_time - verification_start_time:.4f} seconds")
 
             # Hash the verification code
-            verification_code_hash = generate_password_hash(str(user.verification_code))
-            verification_code_hash = str(verification_code_hash)
+            verification_code_hash = generate_password_hash(user.verification_code)
 
             # Create a temporary token with the username and hashed code
             temporary_token = create_access_token(
                 identity={
                     "username": user.username,
+                    "id": user.id,
                     "verification_code_hash": verification_code_hash
                 },
                 expires_delta=timedelta(minutes=5)  # Token expires in 10 minutes
@@ -67,13 +56,9 @@ class LoginResource(Resource):
 
             print(f'Email sent to {user.email} with verification code: {user.verification_code}')
 
-            end_time = time.time()
-            print(f"Total time for LoginResource.post: {end_time - start_time:.4f} seconds")
 
             return make_response(jsonify({'temporary_token': temporary_token, 'message': 'Verification code sent!'}), 200)
         else:
-            end_time = time.time()
-            print(f"Total time for LoginResource.post (failed): {end_time - start_time:.4f} seconds")
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
         
 
@@ -86,12 +71,21 @@ class Verify2FAResource(Resource):
         # Decode the temporary token and get the user identity data
         decoded_token = get_jwt_identity()
         username = decoded_token.get("username")
+        id = decoded_token.get("id")
+        role = search_user_role(id)
         verification_code_hash = decoded_token.get("verification_code_hash")
 
         # Check the entered code against the hash
-        if check_password_hash(verification_code_hash, str(entered_code)):
+        try:
+            entered_code_str = str(entered_code)
+        except Exception as e:
+            return make_response(jsonify({'message': 'Invalid verification code format'}), 400)
+
+        if check_password_hash(verification_code_hash, entered_code_str):
             # If successful, generate a new access token
-            access_token = create_access_token(identity={"username": username, "role":"oi"})
+            access_token = create_access_token(identity={"username": 
+                                                        username, "id": id, 
+                                                        "role": role})
             return make_response(jsonify({'access_token': access_token, 'message': '2FA successful!'}), 200)
         else:
             # If the code is incorrect, return an error
@@ -115,6 +109,7 @@ class RegisterResource(Resource):
             return make_response(jsonify({'message': 'User registered successfully!'}), 201)
 
         except IntegrityError as e:
+            print(e.orig.args[0])
             if e.orig.args[0] == 1062:  # MySQL duplicate entry error code
                 logging.error("Duplicated username detected")
                 return make_response(jsonify({'message': 'Username already taken!'}), 400)
@@ -135,6 +130,8 @@ class StatusResource(Resource):
 
         # Assuming current_identity is a dictionary containing user information
         username = current_identity.get("username")
+        role = current_identity.get("role")
+        print(f"You're logged with the role {role}")
 
         if username:
             return make_response(jsonify({'authenticated': True, 'username': username}), 200)
@@ -244,3 +241,26 @@ def get_user_by_username(username):
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error getting user by username: {e}")
         raise  # Re-raise the exception after logging it
+
+def search_user_role(user_id):
+    """Get a user's role by their user ID searching the Database"""
+    try:
+        with engine.connect() as conn:  # Use engine.connect() to get a connection
+            query = text("SELECT user_roles FROM users WHERE id = :user_id")
+            result = conn.execute(query, {'user_id': user_id})
+            user_data = result.fetchone()  # Fetch one result
+            
+            if user_data:
+                return json.loads(user_data['user_roles'])  # Convert JSON string to list
+    except SQLAlchemyError as e:
+        logging.error(f"Error getting user role by user ID: {e}")
+        raise
+
+def get_role():
+    '''Extract user role from the token'''
+    current_identity = get_jwt_identity()
+    
+    # Assuming current_identity is a dictionary containing user information
+    
+    return current_identity.get("role")
+       
