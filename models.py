@@ -53,7 +53,7 @@ def construct_user(user_data):
         username=user_data['username'],
         email=user_data["email"],
         created_at=user_data['created_at'],
-        roles=user_data['user_roles'].split(",") if user_data['user_roles'] else []
+        roles=user_data['roles'].split(",") if user_data['roles'] else []
     )
 
 
