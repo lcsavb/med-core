@@ -27,7 +27,7 @@ class User:
 
     def set_verification_code(self):
         """Generate a 6-digit code and set expiry time."""
-        self.verification_code = random.randint(100000, 999999)
+        self.verification_code = str(random.randint(100000, 999999))
         
          # Schedule deletion of the code after 5 minutes
         threading.Timer(300, self.delete_verification_code).start()
@@ -35,6 +35,11 @@ class User:
     def delete_verification_code(self):
         """Delete the verification code and expiry."""
         self.verification_code = None
+
+    def query_table(self):
+        """The user can be a healthcare professional, a user-admin or a frontdesk employee
+        this method queries each table to determine the right category"""
+        
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -48,7 +53,7 @@ def construct_user(user_data):
         username=user_data['username'],
         email=user_data["email"],
         created_at=user_data['created_at'],
-        roles=user_data['user_roles'].split(",") if user_data['user_roles'] else []
+        roles=user_data['roles'].split(",") if user_data['roles'] else []
     )
 
 

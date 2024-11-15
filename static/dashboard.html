@@ -1,8 +1,21 @@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <div class="dashboard-container" id="dashboardContainer">
   <div class="row">
     <div class="col-md-12">
       <h1>Dashboard</h1>
-      <p id="currentDate"></p>
+
+      <div class="date-picker-container">
+        <p id="currentDate"></p>
+        <button id="datePickerButton" class="date-picker-button">📅</button>
+        <input
+          type="date"
+          id="datePicker"
+          class="date-picker-input"
+          style="display: none"
+        />
+      </div>
+
       <input type="text" id="searchInput" placeholder="Search patients..." />
       <div class="patient-list-header">
         <span class="header-time">Time</span>
@@ -20,5 +33,3 @@
     <div id="anamnesisContent"></div>
   </div>
 </div>
-
-<script src="dashboard.js"></script>

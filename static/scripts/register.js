@@ -1,3 +1,5 @@
+console.log('register.js loaded');
+
 $('#registerForm').on('submit', async function (event) {
     event.preventDefault(); // Prevent form from submitting the default way
 

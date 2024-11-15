@@ -8,6 +8,7 @@ import threading
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
+from datetime import timedelta
 
 from flask import request, jsonify, make_response
 from flask_restful import Resource, Api
@@ -23,47 +24,27 @@ from models import construct_user
 SECRET_KEY = "your-secret-key"
 
 
-
-from flask import request, jsonify, make_response
-from flask_restful import Resource
-from flask_jwt_extended import create_access_token
-from werkzeug.security import generate_password_hash, check_password_hash
-import threading
-import time
-from datetime import timedelta
-
 class LoginResource(Resource):
     def post(self):
-        start_time = time.time()
-
         username = request.json.get('username')
         password = request.json.get('password')
 
-        # Measure time to get request data
-        request_time = time.time()
-        print(f"Time to get request data: {request_time - start_time:.4f} seconds")
-
         # Authenticate the user
-        auth_start_time = time.time()
         user = authenticate_user(username, password)
-        auth_end_time = time.time()
-        print(f"Time to authenticate user: {auth_end_time - auth_start_time:.4f} seconds")
 
         if user:
             # Set a verification code
-            verification_start_time = time.time()
+
             user.set_verification_code()
-            verification_end_time = time.time()
-            print(f"Time to set verification code: {verification_end_time - verification_start_time:.4f} seconds")
 
             # Hash the verification code
-            verification_code_hash = generate_password_hash(str(user.verification_code))
-            verification_code_hash = str(verification_code_hash)
+            verification_code_hash = generate_password_hash(user.verification_code)
 
             # Create a temporary token with the username and hashed code
             temporary_token = create_access_token(
                 identity={
                     "username": user.username,
+                    "id": user.id,
                     "verification_code_hash": verification_code_hash
                 },
                 expires_delta=timedelta(minutes=5)  # Token expires in 10 minutes
@@ -75,27 +56,11 @@ class LoginResource(Resource):
 
             print(f'Email sent to {user.email} with verification code: {user.verification_code}')
 
-            end_time = time.time()
-            print(f"Total time for LoginResource.post: {end_time - start_time:.4f} seconds")
 
             return make_response(jsonify({'temporary_token': temporary_token, 'message': 'Verification code sent!'}), 200)
         else:
-            end_time = time.time()
-            print(f"Total time for LoginResource.post (failed): {end_time - start_time:.4f} seconds")
             return make_response(jsonify({'message': 'Invalid username or password'}), 401)
         
-
-from flask import request, jsonify, make_response
-from flask_restful import Resource
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
-from werkzeug.security import check_password_hash
-import logging
-
-import jwt  # Import PyJWT
-from flask import request, jsonify, make_response
-from werkzeug.security import check_password_hash
-
-SECRET_KEY = "your_secret_key_here"  # Replace with your secret key
 
 class Verify2FAResource(Resource):
     @jwt_required()  # This decorator validates the JWT token
@@ -106,21 +71,23 @@ class Verify2FAResource(Resource):
         # Decode the temporary token and get the user identity data
         decoded_token = get_jwt_identity()
         username = decoded_token.get("username")
+        id = decoded_token.get("id")
+        user_data = search_user_data(id)
         verification_code_hash = decoded_token.get("verification_code_hash")
 
         # Check the entered code against the hash
-        if check_password_hash(verification_code_hash, str(entered_code)):
+        try:
+            entered_code_str = str(entered_code)
+        except Exception as e:
+            return make_response(jsonify({'message': 'Invalid verification code format'}), 400)
+
+        if check_password_hash(verification_code_hash, entered_code_str):
             # If successful, generate a new access token
-            access_token = create_access_token(identity={"username": username, "role":"oi"})
+            access_token = create_access_token(identity=user_data)
             return make_response(jsonify({'access_token': access_token, 'message': '2FA successful!'}), 200)
         else:
             # If the code is incorrect, return an error
             return make_response(jsonify({'message': 'Invalid verification code'}), 401)
-
-
-
-
-
 
 
 class RegisterResource(Resource):
@@ -140,6 +107,7 @@ class RegisterResource(Resource):
             return make_response(jsonify({'message': 'User registered successfully!'}), 201)
 
         except IntegrityError as e:
+            print(e.orig.args[0])
             if e.orig.args[0] == 1062:  # MySQL duplicate entry error code
                 logging.error("Duplicated username detected")
                 return make_response(jsonify({'message': 'Username already taken!'}), 400)
@@ -159,17 +127,13 @@ class StatusResource(Resource):
         print(current_identity)
 
         # Assuming current_identity is a dictionary containing user information
-        username = current_identity.get("username")
+        name = current_identity.get("name")
 
-        if username:
-            return make_response(jsonify({'authenticated': True, 'username': username}), 200)
+        if id:
+            return make_response(jsonify({'authenticated': True, 'username': name}), 200)
         else:
             return make_response(jsonify({'authenticated': False, 'message': 'User not authenticated'}), 403)
 
-
-
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask import jsonify
 
 class ProtectedResource(Resource):
     @jwt_required()
@@ -232,7 +196,7 @@ def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
     """Insert a new user into the database using vanilla SQL and transaction handling."""
     with engine.begin() as conn:  # engine.begin() handles transaction management
         query = text("""
-            INSERT INTO users (username, name, password_hash, email, phone, user_roles, created_at)
+            INSERT INTO users (username, name, password_hash, email, phone, roles, created_at)
             VALUES (:username, :name, :password_hash, :email, :phone, :roles, NOW())
         """)
         conn.execute(query, {
@@ -273,3 +237,34 @@ def get_user_by_username(username):
     except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
         logging.error(f"Error getting user by username: {e}")
         raise  # Re-raise the exception after logging it
+
+def search_user_data(user_id):
+    """Get a user's role by their user ID searching the Database"""
+    try:
+        with engine.connect() as conn:  # Use engine.connect() to get a connection
+            query = text("SELECT id, name, healthcare_professional_id, front_desk_user_id, roles FROM users WHERE id = :user_id")
+            result = conn.execute(query, {'user_id': user_id})
+            user_data = result.fetchone()  # Fetch one result
+
+            if user_data:
+            # Convert user_data to a dictionary with meaningful keys
+                user_data_dict = {
+                    'id': user_data[0],
+                    'name': user_data[1],
+                    'healthcare_professional_id': user_data[2],
+                    'front_desk_user_id': user_data[3],
+                    'roles': json.loads(user_data[4])
+                }
+                return user_data_dict
+    except SQLAlchemyError as e:
+        logging.error(f"Error getting user role by user ID: {e}")
+        raise
+
+def get_role():
+    '''Extract user role from the token'''
+    current_identity = get_jwt_identity()
+    
+    # Assuming current_identity is a dictionary containing user information
+    
+    return current_identity.get("role")
+       

@@ -12,7 +12,6 @@
     <script src="/scripts/routing.js" defer></script>
     <script src="/scripts/register.js" defer></script>
     <script src="scripts/home.js" defer></script>
-    <script src="scripts/dashboard.js" defer></script>
   </head>
 
   <body>
@@ -21,15 +20,30 @@
         <nav>
           <ul>
             <!-- Each link now has a simple identifier (e.g., 'home', 'about') -->
-            <li><a href="#" class="nav-link" data-page="home">Home</a></li>
+            <li>
+              <a
+                href="#"
+                class="nav-link"
+                data-page="home"
+                data-script="home.js"
+                data-css="home.css"
+                >Home</a
+              >
+            </li>
             <li><a href="#" class="nav-link" data-page="about">About Us</a></li>
             <li>
               <a href="#" class="nav-link" data-page="contact">Contact</a>
             </li>
             <li>
-              <a href="#" class="nav-link" data-page="dashboard">Dashboard</a>
+              <a
+                href="#"
+                class="nav-link"
+                data-page="dashboard"
+                data-script="dashboard.js"
+                data-css="dashboard.css"
+                >Dashboard</a
+              >
             </li>
-
             <li>
               <a
                 href="#"
@@ -58,10 +72,7 @@
       <div id="base-url" style="display: none"></div>
 
       <!-- Dynamic content will be injected into the main section -->
-      <main id="main-content">
-        <h1>Welcome to Med-Core</h1>
-        <p>This is the home page content.</p>
-      </main>
+      <main id="main-content"></main>
 
       <footer>
         <p>&copy; 2024 Med-Core</p>

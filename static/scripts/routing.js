@@ -29,7 +29,17 @@ $(document).ready(function () {
           const scriptUrl = baseUrl + 'scripts/' + scriptName;
           loadScript(scriptUrl);
         }
+
+        // Add event listener for "Get Started" button
+        $('.register-link, .login-link').on('click', function (event) {
+          event.preventDefault();
+          const pageName = $(this).data('page');
+          const scriptName = $(this).data('script');
+          const cssName = $(this).data('css');
+          loadPageResources(pageName, scriptName, cssName);
+        });
       },
+      
       error: function () {
         console.error("Error loading page:", pageUrl);
         mainContent.html('<p>Error loading page content.</p>');
@@ -78,8 +88,8 @@ $(document).ready(function () {
   // Handle back/forward navigation in the browser
   $(window).on('popstate', function () {
     const pageName = window.location.pathname.substring(1) || 'home';
-    const scriptName = `${pageName}.js`; // Generate script name for back/forward navigation
-    const cssName = `${pageName}.css`;   // Generate CSS name for back/forward navigation
+    const scriptName = $('.nav-link[data-page="' + pageName + '"]').data('script');
+    const cssName = $('.nav-link[data-page="' + pageName + '"]').data('css');
     loadPageResources(pageName, scriptName, cssName);
   });
 

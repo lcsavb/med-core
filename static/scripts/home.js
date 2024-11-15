@@ -1,3 +1,4 @@
+console.log('home.js loaded');
 $(document).ready(function () {
   // Feature Items Intersection Observer
   const observerOptions = {
@@ -14,6 +15,9 @@ $(document).ready(function () {
   }, observerOptions);
 
   $(".feature-item").each(function () {
+    observer.observe(this);
+  });
+  $(".testimonial-item").each(function () {
     observer.observe(this);
   });
 
@@ -48,4 +52,5 @@ $(document).ready(function () {
   // Intersection Observer for Hero Heading
   const heroHeading = $(".hero-heading")[0];
   if (heroHeading) observer.observe(heroHeading);
+
 });
