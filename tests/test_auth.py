@@ -10,8 +10,6 @@ from app import create_app
 
 @pytest.fixture
 def app():
-    os.environ['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
-    os.environ['SECRET_KEY'] = 'your_secret_key'
     app = create_app()
     app.config['TESTING'] = True
     return app
