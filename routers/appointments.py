@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from marshmallow import ValidationError, Schema, fields, post_dump
 from flask import request
 from flask_restful import Resource
-from sqlalchemy import create_engine, text  # Import text for raw SQL queries
+from sqlalchemy import text  # Import text for raw SQL queries
 from db import engine
 
 class AppointmentQuerySchema(Schema):
@@ -36,8 +36,6 @@ class AppointmentsResource(Resource):
         appointments = self.retrieve(clinic_id, doctor_id, appointment_date)
 
         # Convert datetime fields for JSON serialization if needed
-
-        # Convert datetime fields for JSON serialization
         # I have to improve that later 
         for appointment in appointments:
             # Convert timedelta to a time string in HH:MM format
