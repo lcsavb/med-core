@@ -14,6 +14,7 @@ from routers.professionals import ProfessionalsResource, ProfessionalByIdResourc
 from routers.patients import PatientsResource, PatientsByDoctorsResource
 from routers.schedules import DoctorScheduleResource
 from routers.appointments import AppointmentsResource
+from routers.anamnesis import MedicalRecordResource
 from logging_config import configure_logging
 from rate_limit import limiter
 
@@ -35,6 +36,8 @@ def create_app():
     api.add_resource(StatusResource, '/auth/status')
     api.add_resource(ProtectedResource, '/auth/protected')
     api.add_resource(Verify2FAResource, '/auth/verify-2fa')
+    api.add_resource(MedicalRecordResource, '/api/medical-records')
+
     api.add_resource(ClinicsResource, '/api/clinics/<int:clinic_id>')
     api.add_resource(ProfessionalsResource, '/api/clinics/<int:clinic_id>/doctors')
     api.add_resource(ProfessionalByIdResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>')
