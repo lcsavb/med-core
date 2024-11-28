@@ -17,6 +17,9 @@ from routers.appointments import AppointmentsResource
 from routers.anamnesis import MedicalRecordResource
 from logging_config import configure_logging
 from rate_limit import limiter
+from errors import ErrorHandler
+from error_messages import ErrorMessages  # Import from the new file
+
 
 
 configure_logging()
@@ -58,6 +61,10 @@ limiter.init_app(app)
 @app.errorhandler(RateLimitExceeded)
 def rate_limit_handler(e):
     return jsonify({'message': 'Rate limit exceeded. Please try again later.'}), 429
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    return ErrorHandler.handle_error(error)
 
 # Secret key for session management
 app.secret_key = os.environ.get("SECRET_KEY", "default-secret-key")
