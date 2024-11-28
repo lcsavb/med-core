@@ -13,13 +13,16 @@ from datetime import timedelta
 from flask import request, jsonify, make_response
 from flask_restful import Resource, Api
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from pymysql.err import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import text
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from db import engine
 from models import construct_user
+from errors import ErrorHandler
+from error_messages import ErrorMessages  # Import from the new file
+
 
 SECRET_KEY = "your-secret-key"
 
@@ -76,10 +79,8 @@ class Verify2FAResource(Resource):
         verification_code_hash = decoded_token.get("verification_code_hash")
 
         # Check the entered code against the hash
-        try:
-            entered_code_str = str(entered_code)
-        except Exception as e:
-            return make_response(jsonify({'message': 'Invalid verification code format'}), 400)
+
+        entered_code_str = ErrorHandler.validate_conversion(entered_code, str)
 
         if check_password_hash(verification_code_hash, entered_code_str):
             # If successful, generate a new access token
@@ -102,21 +103,11 @@ class RegisterResource(Resource):
         # Hash the password
         password_hash = generate_password_hash(password)
 
-        try:
-            save_user_in_db(username, password_hash, email, name, phone, is_doctor)
-            return make_response(jsonify({'message': 'User registered successfully!'}), 201)
+        # Save the user to the database, any error will be handled by the global error handler
+        save_user_in_db(username, password_hash, email, name, phone, is_doctor)
 
-        except IntegrityError as e:
-            print(e.orig.args[0])
-            if e.orig.args[0] == 1062:  # MySQL duplicate entry error code
-                logging.error("Duplicated username detected")
-                return make_response(jsonify({'message': 'Username already taken!'}), 400)
-            logging.error(f"IntegrityError: {e}")
-            return make_response(jsonify({'message': 'An integrity error occurred.'}), 500)
+        return make_response(jsonify({'message': 'User registered successfully!'}), 201)
 
-        except Exception as e:
-            logging.error(f"Error registering user: {e}")
-            return make_response(jsonify({'message': 'Error registering user.'}), 500)
 
 
 class StatusResource(Resource):
@@ -211,54 +202,42 @@ def save_user_in_db(username, password_hash, email, name, phone, is_doctor):
 
 def authenticate_user(username, password):
     """Authenticate a user based on username and password."""
-    try:
-        with engine.connect() as conn:  # Use engine.connect() to get a connection
-            query = text("SELECT * FROM users WHERE username = :username")
-            result = conn.execute(query, {'username': username})
-            user_data = result.fetchone()  # Fetch one result
-            
-            if user_data and check_password_hash(user_data['password_hash'], password):
-                return construct_user(user_data)
-    except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
-        logging.error(f"Error during user authentication: {e}")
-        raise  # Re-raise the exception after logging it access_token = create_access_token(identity={"username": user
-
+    with engine.connect() as conn:  # Use engine.connect() to get a connection
+        query = text("SELECT * FROM users WHERE username = :username")
+        result = conn.execute(query, {'username': username})
+        user_data = result.fetchone()  # Fetch one result
+        
+        if user_data and check_password_hash(user_data['password_hash'], password):
+            return construct_user(user_data)
 
 def get_user_by_username(username):
     """Get a user by their username."""
-    try:
-        with engine.connect() as conn:  # Use engine.connect() to get a connection
-            query = text("SELECT * FROM users WHERE username = :username")
-            result = conn.execute(query, {'username': username})
-            user_data = result.fetchone()  # Fetch one result
-            
-            if user_data:
-                return construct_user(user_data)
-    except SQLAlchemyError as e:  # Catch SQLAlchemy-specific exceptions
-        logging.error(f"Error getting user by username: {e}")
-        raise  # Re-raise the exception after logging it
+    with engine.connect() as conn:  # Use engine.connect() to get a connection
+        query = text("SELECT * FROM users WHERE username = :username")
+        result = conn.execute(query, {'username': username})
+        user_data = result.fetchone()  # Fetch one result
+        
+        if user_data:
+            return construct_user(user_data)
 
 def search_user_data(user_id):
-    """Get a user's role by their user ID searching the Database"""
-    try:
-        with engine.connect() as conn:  # Use engine.connect() to get a connection
-            query = text("SELECT id, name, healthcare_professional_id, front_desk_user_id, roles FROM users WHERE id = :user_id")
-            result = conn.execute(query, {'user_id': user_id})
-            user_data = result.fetchone()  # Fetch one result
+    """Get a user's role by their user ID searching the Database."""
+    with engine.connect() as conn:  # Use engine.connect() to get a connection
+        query = text("SELECT id, name, healthcare_professional_id, front_desk_user_id, roles FROM users WHERE id = :user_id")
+        result = conn.execute(query, {'user_id': user_id})
+        user_data = result.fetchone()  # Fetch one result
 
-            if user_data:
+        if user_data:
             # Convert user_data to a dictionary with meaningful keys
-                user_data_dict = {
-                    'id': user_data[0],
-                    'name': user_data[1],
-                    'healthcare_professional_id': user_data[2],
-                    'front_desk_user_id': user_data[3],
-                    'roles': json.loads(user_data[4])
-                }
-                return user_data_dict
-    except SQLAlchemyError as e:
-        logging.error(f"Error getting user role by user ID: {e}")
-        raise
+            user_data_dict = {
+                'id': user_data[0],
+                'name': user_data[1],
+                'healthcare_professional_id': user_data[2],
+                'front_desk_user_id': user_data[3],
+                'roles': json.loads(user_data[4])
+            }
+            return user_data_dict
+
 
 def get_role():
     '''Extract user role from the token'''
