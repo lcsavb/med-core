@@ -1,6 +1,5 @@
-
-
 $(document).ready(function () {
+    
     // Display the current date
     const currentDate = new Date().toLocaleDateString();
     $('#currentDate').text(`Current Date: ${currentDate}`);
