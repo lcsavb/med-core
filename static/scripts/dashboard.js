@@ -1,5 +1,6 @@
+
 $(document).ready(function () {
-    
+    updateNavBar(); // Update the navigation bar based on the login status
     // Display the current date
     const currentDate = new Date().toLocaleDateString();
     $('#currentDate').text(`Current Date: ${currentDate}`);

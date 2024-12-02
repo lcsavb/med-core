@@ -6,13 +6,13 @@ $(document).ready(function () {
     navBar.empty(); // Clear existing nav items
 
     if (token) {
-      // If logged in, show the new navigation links
+      // If logged in, show Dashboard and Logout
       navBar.append(`
-        <li><a href="#" class="nav-link" data-page="patients" data-script="patients.js" data-css="patients.css">Patients</a></li>
-        <li><a href="#" class="nav-link" data-page="clinics" data-script="clinics.js" data-css="clinics.css">Clinics</a></li>
-        <li><a href="#" class="nav-link" data-page="frontdesk" data-script="frontdesk.js" data-css="frontdesk.css">Front Desk</a></li>
-        <li><a href="#" class="nav-link" data-page="dashboard" data-script="dashboard.js" data-css="dashboard.css">Dashboard</a></li>
-        <li><a href="#" id="logoutBtn" class="nav-link">Logout</a></li>
+        <li><a href="/clinics" class="nav-link"">Clinics</a></li>
+         <li><a href="/patients" class="nav-link"">Patients</a></li>
+        <li><a href="/frontdesk" class="nav-link">Front Desk</a></li>
+        <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+        <li><a href="/logout" class="nav-link">Logout</a></li>
       `);
 
       // Attach the logout function to the Logout button
@@ -32,17 +32,27 @@ $(document).ready(function () {
           <li><a href="#" class="nav-link" data-page="about">About Us</a></li>
           <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
           <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
-          <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="register.css">Register</a></li>
+          <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="login.css">Register</a></li>
         `);
       });
     } else {
       // If not logged in, show the default links
       navBar.append(`
-        <li><a href="#" class="nav-link" data-page="home" data-script="home.js" data-css="home.css">Home</a></li>
-        <li><a href="#" class="nav-link" data-page="about">About</a></li>
-        <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
-        <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
-        <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="register.css">Register</a></li>
+        <li>
+          <a href="/home" class="nav-link">Home</a>
+        </li>
+        <li>
+          <a href="/about" class="nav-link">About</a>
+        </li>
+        <li>
+          <a href="/contact" class="nav-link">Contact</a>
+        </li>
+        <li>
+          <a href="/login" class="nav-link">Login</a>
+        </li>
+        <li>
+          <a href="/register" class="nav-link">Register</a>
+        </li>
       `);
     }
   };
