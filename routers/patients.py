@@ -1,5 +1,9 @@
+import logging
+
 from flask_restful import Resource
+from flask import request
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from db import engine
 
 class PatientsResource(Resource):
@@ -24,3 +28,31 @@ class PatientsByDoctorsResource(Resource):
             result = connection.execute(query, {"doctor_id": doctor_id, "clinic_id": clinic_id})
             patients = [dict(row) for row in result]
         return {"patients": patients}, 200
+    
+    def post(self):
+        patient_data = request.get_json()
+
+
+        insert_query = text(
+            """
+            INSERT INTO patients (
+                first_name, last_name, picture, date_of_birth, gender, address, address_number,
+                address_complement, zip, phone, email, status, emergency_contact_name,
+                emergency_contact_phone, nationality, language, insurance_provider,
+                insurance_policy_number, created_at, updated_at
+            ) VALUES (
+                :first_name, :last_name, :picture, :date_of_birth, :gender, :address, :address_number,
+                :address_complement, :zip, :phone, :email, :status, :emergency_contact_name,
+                :emergency_contact_phone, :nationality, :language, :insurance_provider,
+                :insurance_policy_number, :created_at, :updated_at
+            )
+            """
+        )
+
+        try:
+            with engine.connect() as connection:
+                connection.execute(insert_query, **patient_data)
+            return {"message": "Patient created successfully"}, 201
+        except SQLAlchemyError as e:
+            logging.error(f"Error creating patient: {e}")
+            return {"message": "Error creating patient"}, 500

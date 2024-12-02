@@ -64,10 +64,10 @@ class MedicalRecordResource(Resource):
         
         return "No records found", 404
     
-    def post(self):
+    def put(self):
         pass
 
-    def put(self, **kwargs):
+    def post(self, **kwargs):
 
         fields_to_update = ['anamnesis', 'evolution', 'doctor_id', 'clinic_id', 
                             'appointment_id', 'patient_id', 'diagnosis', 'prescription']

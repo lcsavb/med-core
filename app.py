@@ -38,6 +38,7 @@ def create_app():
     api.add_resource(Verify2FAResource, '/auth/verify-2fa')
     api.add_resource(MedicalRecordResource, '/api/medical-records')
     api.add_resource(AppointmentsResource, '/api/appointments/')
+    api.add_resource(PatientsResource, '/api/patients')
 
     api.add_resource(ClinicsResource, '/api/clinics/<int:clinic_id>')
     api.add_resource(ProfessionalsResource, '/api/clinics/<int:clinic_id>/doctors')
