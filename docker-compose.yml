@@ -1,17 +1,29 @@
 version: '3.8'
 
+x-common-env: &common-env
+  MYSQL_HOST: mariadb
+  MYSQL_PORT: 3306
+  MYSQL_DATABASE: medcore_db
+  MYSQL_USER: root
+  MYSQL_PASSWORD: rootpassword
+  JWT_SECRET_KEY: jwt_secretkey
+  MY_SECRET_KEY: secretkey
+
+
+
 services:
   mariadb:
     image: mariadb:10.5
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: medcore_db
-      MYSQL_USER: medcore
-      MYSQL_PASSWORD: medcorepassword
+      <<: *common-env
     ports:
       - "3306:3306"
     volumes:
       - ./db_data:/var/lib/mysql  # Ensure the data is stored in db_data directory inside your project
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 3
 
   flask:
     image: backend
@@ -24,12 +36,7 @@ services:
       - .:/app
     environment:
       FLASK_ENV: development
-      MYSQL_HOST: mariadb
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE: medcore_db
-      MYSQL_USER: medcore
-      MYSQL_PASSWORD: medcorepassword
-      JWT_SECRET_KEY: secretkey
+      <<: *common-env
     depends_on:
       - mariadb
 
@@ -43,15 +50,23 @@ services:
       - ./static:/usr/share/nginx/html
       - ./static/scripts:/usr/share/nginx/scripts
       - ./static/styles:/usr/share/nginx/styles
-
     depends_on:
       - flask
 
   pytest:
-    image: backend
+    build:
+      context: .
+      dockerfile: Dockerfile.pytest
     command: pytest --junitxml=report.xml
+    environment:
+      <<: *common-env
     depends_on:
-      - flask
+      nginx:
+        condition: service_started
+      flask:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
 
 volumes:
   mariadb_data:

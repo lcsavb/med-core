@@ -1,7 +1,7 @@
 /*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.19  Distrib 10.5.26-MariaDB, for debian-linux-gnu (x86_64)
+-- MariaDB dump 10.19-11.6.2-MariaDB, for Linux (x86_64)
 --
--- Host: localhost    Database: medcore_db
+-- Host: 0.0.0.0    Database: medcore_db
 -- ------------------------------------------------------
 -- Server version	10.5.26-MariaDB-ubu2004
 
@@ -14,7 +14,33 @@
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+
+--
+-- Temporary table structure for view `appointment_search`
+--
+
+DROP TABLE IF EXISTS `appointment_search`;
+/*!50001 DROP VIEW IF EXISTS `appointment_search`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+/*!50001 CREATE VIEW `appointment_search` AS SELECT
+ 1 AS `appointment_id`,
+  1 AS `appointment_date`,
+  1 AS `confirmed`,
+  1 AS `patient_id`,
+  1 AS `patient_first_name`,
+  1 AS `patient_last_name`,
+  1 AS `patient_date_of_birth`,
+  1 AS `patient_gender`,
+  1 AS `patient_phone`,
+  1 AS `patient_email`,
+  1 AS `patient_insurance_provider`,
+  1 AS `doctor_id`,
+  1 AS `doctor_name`,
+  1 AS `clinic_id`,
+  1 AS `clinic_name` */;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `appointments`
@@ -25,26 +51,16 @@ DROP TABLE IF EXISTS `appointments`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `appointments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `patient_id` int(11) NOT NULL,
   `schedule_id` int(11) DEFAULT NULL,
-  `medical_records_id` int(11) DEFAULT NULL,
   `appointment_date` datetime DEFAULT NULL,
-  `clinic_id` int(11) DEFAULT NULL,
-  `healthcare_professional_id` int(11) DEFAULT NULL,
   `confirmed` tinyint(1) DEFAULT 0,
+  `care_link_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `medical_records_id` (`medical_records_id`),
-  KEY `patient_id` (`patient_id`),
   KEY `schedule_id` (`schedule_id`),
-  KEY `fk_clinic` (`clinic_id`),
-  KEY `fk_healthcare_professionals` (`healthcare_professional_id`),
-  CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`medical_records_id`) REFERENCES `medical_records` (`id`),
-  CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`),
-  CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`),
-  CONSTRAINT `fk_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_doctor` FOREIGN KEY (`healthcare_professional_id`) REFERENCES `healthcare_professionals` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_healthcare_professionals` FOREIGN KEY (`healthcare_professional_id`) REFERENCES `healthcare_professionals` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `appointments_care_link_FK` (`care_link_id`),
+  CONSTRAINT `appointments_care_link_FK` FOREIGN KEY (`care_link_id`) REFERENCES `care_link` (`id`),
+  CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -53,6 +69,15 @@ CREATE TABLE `appointments` (
 
 LOCK TABLES `appointments` WRITE;
 /*!40000 ALTER TABLE `appointments` DISABLE KEYS */;
+INSERT INTO `appointments` VALUES
+(64,3,'2024-11-20 09:00:00',0,1),
+(65,3,'2024-11-20 09:30:00',0,1),
+(66,3,'2024-11-20 10:00:00',0,1),
+(67,3,'2024-11-20 10:30:00',0,1),
+(68,3,'2024-11-20 11:00:00',0,1),
+(69,3,'2024-11-20 11:30:00',0,1),
+(70,3,'2024-11-20 12:00:00',0,1),
+(71,NULL,NULL,0,0);
 /*!40000 ALTER TABLE `appointments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -64,16 +89,19 @@ DROP TABLE IF EXISTS `care_link`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `care_link` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
+  `clinic_id` int(11) NOT NULL,
   `doctor_id` int(11) NOT NULL,
   `patient_id` int(11) NOT NULL,
-  `assigned_at` datetime DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
   PRIMARY KEY (`id`),
+  UNIQUE KEY `clinic_id` (`clinic_id`,`doctor_id`,`patient_id`),
   KEY `doctor_id` (`doctor_id`),
   KEY `patient_id` (`patient_id`),
-  CONSTRAINT `care_link_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `healthcare_professionals` (`id`),
-  CONSTRAINT `care_link_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  CONSTRAINT `care_link_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `care_link_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `healthcare_professionals` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `care_link_ibfk_3` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,7 +110,9 @@ CREATE TABLE `care_link` (
 
 LOCK TABLES `care_link` WRITE;
 /*!40000 ALTER TABLE `care_link` DISABLE KEYS */;
-INSERT INTO `care_link` VALUES (31,6,21,'2024-11-14 19:53:45'),(32,6,22,'2024-11-14 19:53:45'),(33,6,23,'2024-11-14 19:53:45'),(34,6,24,'2024-11-14 19:53:45'),(35,6,25,'2024-11-14 19:53:45'),(36,6,26,'2024-11-14 19:53:45'),(37,6,27,'2024-11-14 19:53:45'),(38,6,28,'2024-11-14 19:53:45'),(39,6,29,'2024-11-14 19:53:45'),(40,6,30,'2024-11-14 19:53:45'),(41,6,31,'2024-11-14 19:53:45');
+INSERT INTO `care_link` VALUES
+(0,3,5,31,'active'),
+(1,3,5,22,'active');
 /*!40000 ALTER TABLE `care_link` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -121,7 +151,9 @@ CREATE TABLE `clinics` (
 
 LOCK TABLES `clinics` WRITE;
 /*!40000 ALTER TABLE `clinics` DISABLE KEYS */;
-INSERT INTO `clinics` VALUES (3,'Santa Clara','','',NULL,'','','','','',NULL,NULL,'Private',32,NULL),(4,'Medclinic','','',NULL,'','','','','',NULL,NULL,'Private',32,NULL);
+INSERT INTO `clinics` VALUES
+(3,'Santa Clara','','',NULL,'','','','','',NULL,NULL,'Private',32,NULL),
+(4,'Medclinic','','',NULL,'','','','','',NULL,NULL,'Private',32,NULL);
 /*!40000 ALTER TABLE `clinics` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -151,7 +183,9 @@ CREATE TABLE `employment_link` (
 
 LOCK TABLES `employment_link` WRITE;
 /*!40000 ALTER TABLE `employment_link` DISABLE KEYS */;
-INSERT INTO `employment_link` VALUES (6,3,5,NULL),(7,4,6,NULL);
+INSERT INTO `employment_link` VALUES
+(6,3,5,NULL),
+(7,4,6,NULL);
 /*!40000 ALTER TABLE `employment_link` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -217,7 +251,9 @@ CREATE TABLE `healthcare_professionals` (
 
 LOCK TABLES `healthcare_professionals` WRITE;
 /*!40000 ALTER TABLE `healthcare_professionals` DISABLE KEYS */;
-INSERT INTO `healthcare_professionals` VALUES (5,'','Amaro Amancio',NULL,'',NULL,'','',NULL,NULL,3),(6,'','Sebastiao Salgado',NULL,'',NULL,'','',NULL,NULL,4);
+INSERT INTO `healthcare_professionals` VALUES
+(5,'','Amaro Amancio',NULL,'',NULL,'','',NULL,NULL,3),
+(6,'','Sebastiao Salgado',NULL,'',NULL,'','',NULL,NULL,4);
 /*!40000 ALTER TABLE `healthcare_professionals` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -230,7 +266,6 @@ DROP TABLE IF EXISTS `medical_records`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `medical_records` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `patient_id` int(11) NOT NULL,
   `record_date` datetime DEFAULT NULL,
   `diagnosis` text NOT NULL,
   `anamnesis` text NOT NULL,
@@ -238,10 +273,14 @@ CREATE TABLE `medical_records` (
   `pdf_file` blob DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `hash` char(64) NOT NULL,
+  `appointment_id` int(11) NOT NULL,
+  `care_link_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `patient_id` (`patient_id`),
-  CONSTRAINT `medical_records_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  KEY `fk_appointment_id` (`appointment_id`),
+  KEY `medical_records_care_link_FK` (`care_link_id`),
+  CONSTRAINT `fk_appointment_id` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `medical_records_care_link_FK` FOREIGN KEY (`care_link_id`) REFERENCES `care_link` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -250,6 +289,14 @@ CREATE TABLE `medical_records` (
 
 LOCK TABLES `medical_records` WRITE;
 /*!40000 ALTER TABLE `medical_records` DISABLE KEYS */;
+INSERT INTO `medical_records` VALUES
+(1,'2024-11-20 11:00:00','Diagnosis for patient 22','Anamnesis for patient 22','Evolution for patient 22',NULL,'2024-11-17 10:00:00','hash_22',64,1),
+(2,'2024-11-20 11:00:00','Diagnosis for patient 23','Anamnesis for patient 23','Evolution for patient 23',NULL,'2024-11-17 10:00:00','hash_23',65,1),
+(3,'2024-11-20 11:00:00','Diagnosis for patient 24','Anamnesis for patient 24','Evolution for patient 24',NULL,'2024-11-17 10:00:00','hash_24',66,0),
+(4,'2024-11-20 11:00:00','Diagnosis for patient 25','Anamnesis for patient 25','Evolution for patient 25',NULL,'2024-11-17 10:00:00','hash_25',67,0),
+(5,'2024-11-20 11:00:00','Diagnosis for patient 26','Anamnesis for patient 26','Evolution for patient 26',NULL,'2024-11-17 10:00:00','hash_26',68,0),
+(6,'2024-11-20 11:00:00','Diagnosis for patient 27','Anamnesis for patient 27','Evolution for patient 27',NULL,'2024-11-17 10:00:00','hash_27',69,0),
+(7,'2024-11-20 11:00:00','Diagnosis for patient 28','Anamnesis for patient 28','Evolution for patient 28',NULL,'2024-11-17 10:00:00','hash_28',70,0);
 /*!40000 ALTER TABLE `medical_records` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -319,7 +366,18 @@ CREATE TABLE `patients` (
 
 LOCK TABLES `patients` WRITE;
 /*!40000 ALTER TABLE `patients` DISABLE KEYS */;
-INSERT INTO `patients` VALUES (21,'John','Doe',NULL,'1990-01-01','male','123 Main St','10','Apt 1','12345','123-456-7890','johndoe@example.com','active','Jane Doe','098-765-4321','American','English','Blue Cross','INS-1001','2024-11-14 19:47:33','2024-11-14 19:47:33'),(22,'John','Doe',NULL,'1990-01-01','male','123 Main St','10','Apt 1','12345','123-456-7890','johndoe@example.com','active','Jane Doe','098-765-4321','American','English','Blue Cross','INS-1001','2024-11-14 19:50:39','2024-11-14 19:50:39'),(23,'Alice','Smith',NULL,'1985-05-15','female','456 Oak St','20','Suite B','67890','234-567-8901','alicesmith@example.com','active','Bob Smith','987-654-3210','Canadian','French','United Health','INS-1002','2024-11-14 19:50:39','2024-11-14 19:50:39'),(24,'Bob','Johnson',NULL,'1975-03-22','male','789 Pine St','30','Apt 2','54321','345-678-9012','bobjohnson@example.com','active','Anna Johnson','876-543-2109','British','English','Cigna','INS-1003','2024-11-14 19:50:39','2024-11-14 19:50:39'),(25,'Carol','Taylor',NULL,'1992-09-10','female','101 Maple St','40',NULL,'98765','456-789-0123','caroltaylor@example.com','active','Eve Taylor','765-432-1098','Australian','English','Aetna','INS-1004','2024-11-14 19:50:39','2024-11-14 19:50:39'),(26,'David','Brown',NULL,'1980-06-30','male','202 Cedar St','50','Unit 3','11223','567-890-1234','davidbrown@example.com','active','Fiona Brown','654-321-0987','Irish','English','Humana','INS-1005','2024-11-14 19:50:39','2024-11-14 19:50:39'),(27,'Emma','Wilson',NULL,'1988-11-12','female','303 Elm St','60',NULL,'44556','678-901-2345','emmawilson@example.com','active','Harry Wilson','543-210-9876','German','German','Allianz','INS-1006','2024-11-14 19:50:39','2024-11-14 19:50:39'),(28,'Frank','Moore',NULL,'1979-02-28','male','404 Walnut St','70','Penthouse','77889','789-012-3456','frankmoore@example.com','active','Ivy Moore','432-109-8765','Spanish','Spanish','AXA','INS-1007','2024-11-14 19:50:39','2024-11-14 19:50:39'),(29,'Grace','Anderson',NULL,'1991-01-01','female','505 Birch St','80','Suite 2','33444','890-123-4567','graceanderson@example.com','active','John Anderson','321-098-7654','French','French','Blue Cross','INS-1008','2024-11-14 19:50:39','2024-11-14 19:50:39'),(30,'Henry','Thomas',NULL,'1967-03-15','male','606 Cedar St','90',NULL,'55678','901-234-5678','henrythomas@example.com','active','Kathy Thomas','210-987-6543','Italian','Italian','United Health','INS-1009','2024-11-14 19:50:39','2024-11-14 19:50:39'),(31,'Ivy','Jackson',NULL,'1982-07-19','female','707 Oak St','100','Apt 5','22334','012-345-6789','ivyjackson@example.com','active','Leo Jackson','109-876-5432','American','English','Cigna','INS-1010','2024-11-14 19:50:39','2024-11-14 19:50:39');
+INSERT INTO `patients` VALUES
+(21,'John','Doe',NULL,'1990-01-01','male','123 Main St','10','Apt 1','12345','123-456-7890','johndoe@example.com','active','Jane Doe','098-765-4321','American','English','Blue Cross','INS-1001','2024-11-14 19:47:33','2024-11-14 19:47:33'),
+(22,'John','Doe',NULL,'1990-01-01','male','123 Main St','10','Apt 1','12345','123-456-7890','johndoe@example.com','active','Jane Doe','098-765-4321','American','English','Blue Cross','INS-1001','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(23,'Alice','Smith',NULL,'1985-05-15','female','456 Oak St','20','Suite B','67890','234-567-8901','alicesmith@example.com','active','Bob Smith','987-654-3210','Canadian','French','United Health','INS-1002','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(24,'Bob','Johnson',NULL,'1975-03-22','male','789 Pine St','30','Apt 2','54321','345-678-9012','bobjohnson@example.com','active','Anna Johnson','876-543-2109','British','English','Cigna','INS-1003','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(25,'Carol','Taylor',NULL,'1992-09-10','female','101 Maple St','40',NULL,'98765','456-789-0123','caroltaylor@example.com','active','Eve Taylor','765-432-1098','Australian','English','Aetna','INS-1004','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(26,'David','Brown',NULL,'1980-06-30','male','202 Cedar St','50','Unit 3','11223','567-890-1234','davidbrown@example.com','active','Fiona Brown','654-321-0987','Irish','English','Humana','INS-1005','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(27,'Emma','Wilson',NULL,'1988-11-12','female','303 Elm St','60',NULL,'44556','678-901-2345','emmawilson@example.com','active','Harry Wilson','543-210-9876','German','German','Allianz','INS-1006','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(28,'Frank','Moore',NULL,'1979-02-28','male','404 Walnut St','70','Penthouse','77889','789-012-3456','frankmoore@example.com','active','Ivy Moore','432-109-8765','Spanish','Spanish','AXA','INS-1007','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(29,'Grace','Anderson',NULL,'1991-01-01','female','505 Birch St','80','Suite 2','33444','890-123-4567','graceanderson@example.com','active','John Anderson','321-098-7654','French','French','Blue Cross','INS-1008','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(30,'Henry','Thomas',NULL,'1967-03-15','male','606 Cedar St','90',NULL,'55678','901-234-5678','henrythomas@example.com','active','Kathy Thomas','210-987-6543','Italian','Italian','United Health','INS-1009','2024-11-14 19:50:39','2024-11-14 19:50:39'),
+(31,'Ivy','Jackson',NULL,'1982-07-19','female','707 Oak St','100','Apt 5','22334','012-345-6789','ivyjackson@example.com','active','Leo Jackson','109-876-5432','American','English','Cigna','INS-1010','2024-11-14 19:50:39','2024-11-14 19:50:39');
 /*!40000 ALTER TABLE `patients` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -401,7 +459,7 @@ CREATE TABLE `schedules` (
   KEY `doctor_id` (`doctor_id`),
   CONSTRAINT `schedules_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`),
   CONSTRAINT `schedules_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `healthcare_professionals` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -410,6 +468,8 @@ CREATE TABLE `schedules` (
 
 LOCK TABLES `schedules` WRITE;
 /*!40000 ALTER TABLE `schedules` DISABLE KEYS */;
+INSERT INTO `schedules` VALUES
+(3,5,3,'08:00:00','12:00:00',30,NULL,NULL);
 /*!40000 ALTER TABLE `schedules` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -450,9 +510,33 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (31,'lcsavb2','clara','lcsaasdfasdfasdfsdfvb@gmail.com','asdf','scrypt:32768:8:1$xDwNKwVArrrp2pYK$f8cfb97396a7a47dd28518fd8b11badb48bea1dbc1d5fbc8d8d56f50156b27f4ce63ff7e8dc930a0287743b7a007153cbdd9bfe39420a5e6faa4bf9148825a52','active',NULL,'2024-11-14 19:26:01','2024-11-14 19:58:47',6,NULL,'[\"doctor\"]'),(32,'lcs','jlakdsf','lakdjfalksdfjaksldjf@jalksdfjksd.com','65465','scrypt:32768:8:1$FLPrVWsRpodrQml5$9a219e414a2a9c03c3296e484113ce93f15e6e7ce65a7036e501b1a509a31313e9880acf02f9803804aef88742ea7e6850ac08ae87834a2a4ef2a162216f0827','active',NULL,'2024-11-14 19:26:39','2024-11-14 19:58:10',5,NULL,'[\"doctor\",\"front_desk_user\"]');
+INSERT INTO `users` VALUES
+(31,'lcsavb2','clara','lcsaasdfasdfasdfsdfvb@gmail.com','asdf','scrypt:32768:8:1$xDwNKwVArrrp2pYK$f8cfb97396a7a47dd28518fd8b11badb48bea1dbc1d5fbc8d8d56f50156b27f4ce63ff7e8dc930a0287743b7a007153cbdd9bfe39420a5e6faa4bf9148825a52','active',NULL,'2024-11-14 19:26:01','2024-11-14 19:58:47',6,NULL,'[\"doctor\"]'),
+(32,'lcs','jlakdsf','lakdjfalksdfjaksldjf@jalksdfjksd.com','65465','scrypt:32768:8:1$FLPrVWsRpodrQml5$9a219e414a2a9c03c3296e484113ce93f15e6e7ce65a7036e501b1a509a31313e9880acf02f9803804aef88742ea7e6850ac08ae87834a2a4ef2a162216f0827','active',NULL,'2024-11-14 19:26:39','2024-11-14 19:58:10',5,NULL,'[\"doctor\",\"front_desk_user\"]');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'medcore_db'
+--
+
+--
+-- Final view structure for view `appointment_search`
+--
+
+/*!50001 DROP VIEW IF EXISTS `appointment_search`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`%` SQL SECURITY DEFINER */
+/*!50001 VIEW `appointment_search` AS select `a`.`id` AS `appointment_id`,`a`.`appointment_date` AS `appointment_date`,`a`.`confirmed` AS `confirmed`,`cl`.`patient_id` AS `patient_id`,`p`.`first_name` AS `patient_first_name`,`p`.`last_name` AS `patient_last_name`,`p`.`date_of_birth` AS `patient_date_of_birth`,`p`.`gender` AS `patient_gender`,`p`.`phone` AS `patient_phone`,`p`.`email` AS `patient_email`,`p`.`insurance_provider` AS `patient_insurance_provider`,`hp`.`id` AS `doctor_id`,`hp`.`full_name` AS `doctor_name`,`c`.`id` AS `clinic_id`,`c`.`name` AS `clinic_name` from ((((`appointments` `a` join `care_link` `cl` on(`a`.`care_link_id` = `cl`.`id`)) join `patients` `p` on(`cl`.`patient_id` = `p`.`id`)) join `healthcare_professionals` `hp` on(`cl`.`doctor_id` = `hp`.`id`)) join `clinics` `c` on(`cl`.`clinic_id` = `c`.`id`)) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -461,6 +545,6 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2024-11-14 20:47:23
+-- Dump completed on 2024-11-18 22:57:24
