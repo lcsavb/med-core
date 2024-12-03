@@ -39,13 +39,13 @@ def create_app():
     api.add_resource(StatusResource, '/auth/status')
     api.add_resource(ProtectedResource, '/auth/protected')
     api.add_resource(Verify2FAResource, '/auth/verify-2fa')
-    api.add_resource(MedicalRecordResource, '/api/medical-records')
+    api.add_resource(ClinicsResource, '/api/clinics')
     api.add_resource(AppointmentsResource, '/api/appointments/')
+    api.add_resource(PatientsResource, '/api/patients', methods=["GET", "POST"])
 
-    api.add_resource(ClinicsResource, '/api/clinics/<int:clinic_id>')
+    api.add_resource(MedicalRecordResource, '/api/medical-records')
     api.add_resource(ProfessionalsResource, '/api/clinics/<int:clinic_id>/doctors')
     api.add_resource(ProfessionalByIdResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>')
-    api.add_resource(PatientsResource, '/api/clinics/<int:clinic_id>/patients')
     api.add_resource(PatientsByDoctorsResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/patients')
     api.add_resource(DoctorScheduleResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>/schedules')
     

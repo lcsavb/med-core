@@ -64,12 +64,21 @@ class MedicalRecordResource(Resource):
         
         return "No records found", 404
     
-    def post(self):
-        pass
-
     def put(self):
         pass
 
+    def post(self, **kwargs):
 
+        fields_to_update = ['anamnesis', 'evolution', 'doctor_id', 'clinic_id', 
+                            'appointment_id', 'patient_id', 'diagnosis', 'prescription']
+        update_data = {field: kwargs.get(field) for field in fields_to_update}
+
+        query = """INSERT INTO medical_records (anamnesis, evolution, doctor_id, clinic_id,
+                                                appointment_id, patient_id, diagnosis, prescription
+                                                VALUES (:anamnesis, :evolution, :doctor_id, :clinic_id,
+                                                :appointment_id, :patient_id, :diagnosis, :prescription)"""
         
+        with engine.connect() as conn:
+            conn.execute(text(query), **update_data)
 
+        return "Record updated successfully", 200      
