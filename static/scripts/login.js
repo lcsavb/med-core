@@ -161,7 +161,128 @@ $(document).ready(function () {
         console.error('Error:', error);
         alert('An error occurred while checking authentication status.');
       });
-  } else {
-    updateNavBar(); // Initialize the nav bar for non-authenticated users
-  }
+    } else {
+      updateNavBar(); // Initialize the nav bar for non-authenticated users
+    }
+
+    $(document).on('click', '.forgot-password-link', function (event) {
+      event.preventDefault(); // Prevent the default link behavior
+      $('#loginContainer').hide();
+      $('#forgotPasswordContainer').show();
+  });
+  
+  $(document).on('submit', '#forgotPasswordForm', function (event) {
+      event.preventDefault(); // Prevent the default form submission
+  
+      // Get the email value from the form
+      const email = $('#email').val();
+  
+      // Perform an AJAX POST request to the API
+      $.ajax({
+          url: '/auth/forgot-password', // API endpoint
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ email: email }), // Send email as JSON
+          success: function (response) {
+              // Save the token in localStorage
+              localStorage.setItem('forgotPasswordToken', response.temporary_token);
+  
+              // Hide the forgot password container
+              $('#forgotPasswordContainer').hide();
+  
+              // Show the code verification container
+              $('#passwordContainer').show();
+  
+              console.log(response);
+          },
+          error: function (xhr) {
+              // Handle error response
+              const errorMessage = xhr.responseJSON?.error || 'An error occurred';
+              alert(errorMessage);
+              console.log(xhr.responseJSON);
+          }
+      });
+  });
+  // Handle the 'verify code' form submission
+  $(document).on('submit', '#passwordContainer', function (event) {
+    event.preventDefault(); // Prevent the default form submission
+    
+    // Get the entered authentication code
+    const authCode = $('#authCode1').val();
+    
+    // Retrieve the forgotPasswordToken from localStorage
+    const forgotPasswordToken = localStorage.getItem('forgotPasswordToken');
+    
+    if (!forgotPasswordToken) {
+      alert('No forgot password token found.');
+      return;
+    }
+
+    // Perform an AJAX POST request to verify the code
+    $.ajax({
+        url: '/api/verify-password-reset', // API endpoint for verification
+        method: 'POST',
+        contentType: 'application/json',
+        headers: {
+            'Authorization': `Bearer ${forgotPasswordToken}` // Include the token in the Authorization header
+        },
+        data: JSON.stringify({ verification_code: authCode }), // Send entered code
+        success: function (response) {
+            // If verification is successful, show the new password container
+            $('#passwordContainer').hide();  // Hide code verification form
+            $('#newPasswordContainer').show();  // Show the new password form
+            
+        },
+        error: function (xhr) {
+            // Handle error response
+            const errorMessage = xhr.responseJSON?.message || 'Failed to verify the code. Please try again.';
+            alert(errorMessage);
+            console.log(xhr.responseJSON);
+        }
+    });
+  });
+  $(document).on('submit', '#newPasswordForm', function (event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    const newPassword = $('#newPassword').val(); // Get the new password
+    const confirmPassword = $('#confirmPassword').val(); // Get the confirm password
+
+    // Check if both passwords match
+    if (newPassword !== confirmPassword) {
+      alert('Passwords do not match. Please try again.');
+      return;
+    }
+
+    // Retrieve the forgotPasswordToken from localStorage
+    const forgotPasswordToken = localStorage.getItem('forgotPasswordToken');
+    
+    if (!forgotPasswordToken) {
+      alert('No forgot password token found.');
+      return;
+    }
+
+    // Perform the AJAX request to update the password
+    $.ajax({
+      url: '/auth/update-password', // Backend endpoint for updating the password
+      method: 'POST',
+      contentType: 'application/json',
+      headers: {
+        'Authorization': `Bearer ${forgotPasswordToken}` // Include the token in the Authorization header
+      },
+      data: JSON.stringify({ new_password: newPassword }), // Send the new password
+      success: function (response) {
+        alert('Your password has been successfully updated.');
+        console.log(response);
+        
+        // Optionally, redirect the user or show a success message
+        window.location.href = '/login'; // Redirect to login page
+      },
+      error: function (xhr) {
+        const errorMessage = xhr.responseJSON?.message || 'Error updating password. Please try again.';
+        alert(errorMessage);
+        console.log(xhr.responseJSON);
+      }
+    });
+  });
+  
 });
