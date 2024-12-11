@@ -65,8 +65,8 @@ $(document).ready(function () {
     }).appendTo('head');
   }
 
-  // Attach event listeners to all navigation links
-  $('.nav-link').on('click', function (event) {
+  // Attach event listeners to all navigation links using event delegation
+  $(document).on('click', '.nav-link', function (event) {
     event.preventDefault();  // Prevent default link behavior (page reload)
 
     // Get the page name from the data-page attribute
