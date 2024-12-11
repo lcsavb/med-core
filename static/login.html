@@ -36,6 +36,33 @@
       >Register</a
     >
   </p>
+  <p>
+    Forgot Your Password?
+    <a
+      href="#"
+      class="forgot-password-link"
+      data-css="login.css"
+      >Click Here</a
+    >
+  </p>
+</div>
+
+<!-- Forgot Password Email Form Container -->
+<div class="forgot-password-container" id="forgotPasswordContainer" style="display: none;">
+  <h2>Reset Your Password</h2>
+  <form id="forgotPasswordForm">
+    <div class="form-group">
+      <label for="email">Enter your registered email address:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="form-control"
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
 </div>
 
 <!-- Code Input Form Container -->
@@ -55,6 +82,55 @@
     <button type="submit" class="btn btn-primary">Submit Code</button>
   </form>
 </div>
+
+<!-- Code Input Form for Forget Password Container -->
+<div class="password-container" id="passwordContainer" style="display: none">
+  <h2>Enter Authentication Code</h2>
+  <form id="codeForm">
+    <div class="form-group">
+      <label for="authCode">Authentication Code:</label>
+      <input
+        type="text"
+        id="authCode1"
+        name="authCode"
+        class="form-control"
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Code</button>
+  </form>
+</div>
+
+
+<!-- New Password Form Container -->
+<div class="new-password-container" id="newPasswordContainer" style="display: none;">
+  <h2>Set a New Password</h2>
+  <form id="newPasswordForm">
+    <div class="form-group">
+      <label for="newPassword">Enter your new password:</label>
+      <input
+        type="password"
+        id="newPassword"
+        name="newPassword"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="confirmPassword">Confirm your new password:</label>
+      <input
+        type="password"
+        id="confirmPassword"
+        name="confirmPassword"
+        class="form-control"
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+
+
 
 <!-- Authentication Success Container -->
 <div id="authSuccessMessage" style="display: none">
