@@ -1,22 +1,27 @@
 $(document).ready(function () {
+  console.log('Document ready');
+
   // Define the updateNavBar function globally
   window.updateNavBar = function () {
     const token = localStorage.getItem('token');
+    console.log('updateNavBar called, token:', token);
     const navBar = $('nav ul');
     navBar.empty(); // Clear existing nav items
 
     if (token) {
       // If logged in, show Dashboard and Logout
+      console.log('User is logged in, updating nav bar');
       navBar.append(`
-        <li><a href="/clinics" class="nav-link"">Clinics</a></li>
-         <li><a href="/patients" class="nav-link"">Patients</a></li>
-        <li><a href="/frontdesk" class="nav-link">Front Desk</a></li>
-        <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-        <li><a href="/logout" class="nav-link">Logout</a></li>
+        <li><a href="#" class="nav-link" data-page="clinics" data-script="clinics.js" data-css="clinics.css">Clinics</a></li>
+        <li><a href="#" class="nav-link" data-page="patients" data-script="patients.js" data-css="patients.css">Patients</a></li>
+        <li><a href="#" class="nav-link" data-page="frontdesk" data-script="frontdesk.js" data-css="frontdesk.css">Front Desk</a></li>
+        <li><a href="#" class="nav-link" data-page="dashboard" data-script="dashboard.js" data-css="dashboard.css">Dashboard</a></li>
+        <li><a href="#" id="logoutBtn" class="nav-link">Logout</a></li>
       `);
 
       // Attach the logout function to the Logout button
       $('#logoutBtn').on('click', function () {
+        console.log('Logout button clicked');
         // Remove the tokens from localStorage
         localStorage.removeItem('temporary_token');
         localStorage.removeItem('token');
@@ -32,27 +37,18 @@ $(document).ready(function () {
           <li><a href="#" class="nav-link" data-page="about">About Us</a></li>
           <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
           <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
-          <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="login.css">Register</a></li>
+          <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="register.css">Register</a></li>
         `);
       });
     } else {
       // If not logged in, show the default links
+      console.log('User is not logged in, showing default nav bar');
       navBar.append(`
-        <li>
-          <a href="/home" class="nav-link">Home</a>
-        </li>
-        <li>
-          <a href="/about" class="nav-link">About</a>
-        </li>
-        <li>
-          <a href="/contact" class="nav-link">Contact</a>
-        </li>
-        <li>
-          <a href="/login" class="nav-link">Login</a>
-        </li>
-        <li>
-          <a href="/register" class="nav-link">Register</a>
-        </li>
+        <li><a href="#" class="nav-link" data-page="home" data-script="home.js" data-css="home.css">Home</a></li>
+        <li><a href="#" class="nav-link" data-page="about">About</a></li>
+        <li><a href="#" class="nav-link" data-page="contact">Contact</a></li>
+        <li><a href="#" class="nav-link" data-page="login" data-script="login.js" data-css="login.css">Login</a></li>
+        <li><a href="#" class="nav-link" data-page="register" data-script="register.js" data-css="register.css">Register</a></li>
       `);
     }
   };
@@ -63,7 +59,7 @@ $(document).ready(function () {
     $('#customAlert').fadeIn();
   }
 
-    // Handle login form submission
+
   $('#loginForm').on('submit', async function (event) {
     event.preventDefault(); // Prevent form from submitting the default way
     console.log('Login form submitted');
@@ -106,6 +102,7 @@ $(document).ready(function () {
       showCustomAlert('An error occurred. Please try again.');
     }
   });
+
 
 
     // Handle 2FA code submission
@@ -164,10 +161,12 @@ $(document).ready(function () {
     // Reset the navigation bar
     updateNavBar();
     showCustomAlert('You have been logged out.');
+
   });
 
   // Check authentication status on page load
   const token = localStorage.getItem('token');
+  console.log('Checking authentication status, token:', token);
   if (token) {
     fetch('/auth/status', {
       method: 'GET',
@@ -175,6 +174,7 @@ $(document).ready(function () {
     })
       .then((response) => response.json())
       .then((data) => {
+        console.log('Authentication status response:', data);
         if (data.authenticated) {
           $('#loginContainer').hide();
           $('#authSuccessMessage').show();
@@ -189,6 +189,7 @@ $(document).ready(function () {
         console.error('Error:', error);
         showCustomAlert('An error occurred while checking authentication status.');
       });
+
     } else {
       updateNavBar(); // Initialize the nav bar for non-authenticated users
     }
@@ -319,3 +320,4 @@ $(document).ready(function () {
   });
   
 });
+
