@@ -57,73 +57,101 @@ $(document).ready(function () {
     }
   };
 
-  // Handle login form submission
+  function showCustomAlert(message) {
+    console.log('Custom Alert Message:', message); // Debugging statement
+    $('#customAlertMessage').text(message);
+    $('#customAlert').fadeIn();
+  }
+
+    // Handle login form submission
   $('#loginForm').on('submit', async function (event) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent form from submitting the default way
+    console.log('Login form submitted');
 
     const username = $('#username').val();
     const password = $('#password').val();
+    console.log('Username:', username, 'Password:', password);
 
     try {
+      // Send login request to the server
       const response = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Save temporary token and show 2FA form
-        localStorage.setItem('temporary_token', data.temporary_token);
-        $('#loginContainer').hide();
-        $('#codeContainer').show();
-      } else {
-        alert(data.message || 'Login failed, please try again.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred. Please try again.');
-    }
-  });
-
-  // Handle 2FA code submission
-  $('#codeForm').on('submit', async function (event) {
-    event.preventDefault();
-
-    const authCode = $('#authCode').val();
-    const temporaryToken = localStorage.getItem('temporary_token');
-
-    try {
-      const response = await fetch('/auth/verify-2fa', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${temporaryToken}`,
         },
-        body: JSON.stringify({ verification_code: authCode }),
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
       });
 
       const data = await response.json();
+      console.log('Login response:', data);
 
+      // BEFORE ISSUING TOKEN, THE 2FA CODE MUST BE VERIFIED
       if (response.ok) {
-        // Save access token, clear temp token, and update UI
-        localStorage.setItem('token', data.access_token);
-        localStorage.removeItem('temporary_token');
-        $('#codeContainer').hide();
-        $('#authSuccessMessage').show();
+        console.log('Login successful, storing temporary token');
+        // Store the temporary token in localStorage
+        localStorage.setItem('temporary_token', data.temporary_token);
 
-        // Update the navigation bar
-        updateNavBar();
+        // Show the 2FA code input form and hide the login form
+        $('#loginContainer').hide();
+        $('#codeContainer').show();
       } else {
-        alert(data.message || 'Code verification failed, please try again.');
+        // Show an error message if login fails
+        showCustomAlert(data.message || 'Login failed, please try again.');
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('An error occurred. Please try again.');
+      showCustomAlert('An error occurred. Please try again.');
     }
   });
 
+
+    // Handle 2FA code submission
+    $('#codeForm').on('submit', async function (event) {
+      event.preventDefault(); // Prevent form from submitting the default way
+      console.log('2FA code form submitted');
+  
+      const authCode = $('#authCode').val(); // Get the entered 2FA code
+      const temporaryToken = localStorage.getItem('temporary_token'); // Retrieve the temporary token
+      console.log('Auth Code:', authCode, 'Temporary Token:', temporaryToken);
+  
+      try {
+        const response = await fetch('/auth/verify-2fa', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${temporaryToken}` // Include the temporary token in the Authorization header
+          },
+          body: JSON.stringify({
+            verification_code: authCode // Send the 2FA code for verification
+          }),
+        });
+  
+        const data = await response.json();
+        console.log('2FA verification response:', data);
+  
+        if (response.ok) {
+          console.log('2FA verification successful, storing access token');
+          // Handle success, save the access token
+          localStorage.setItem('token', data.access_token); // Save the access token
+          localStorage.removeItem('temporary_token'); // Remove the temporary token after successful authentication
+          $('#codeContainer').hide();
+          $('#authSuccessMessage').show();
+  
+          // Update the navigation bar
+          updateNavBar();
+        } else {
+          // Handle failure
+          showCustomAlert(data.message || 'Code verification failed, please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showCustomAlert('An error occurred. Please try again.');
+      }
+    });
+    
   // Handle logout
   $(document).on('click', '#logoutBtn', function () {
     localStorage.removeItem('token');
@@ -135,7 +163,7 @@ $(document).ready(function () {
 
     // Reset the navigation bar
     updateNavBar();
-    alert('You have been logged out.');
+    showCustomAlert('You have been logged out.');
   });
 
   // Check authentication status on page load
@@ -159,11 +187,16 @@ $(document).ready(function () {
       })
       .catch((error) => {
         console.error('Error:', error);
-        alert('An error occurred while checking authentication status.');
+        showCustomAlert('An error occurred while checking authentication status.');
       });
     } else {
       updateNavBar(); // Initialize the nav bar for non-authenticated users
     }
+
+    $(document).on('click', '.custom-alert-close', function () {
+      console.log('Custom alert close button clicked');
+      $('#customAlert').fadeOut();
+    });
 
     $(document).on('click', '.forgot-password-link', function (event) {
       event.preventDefault(); // Prevent the default link behavior
@@ -198,7 +231,7 @@ $(document).ready(function () {
           error: function (xhr) {
               // Handle error response
               const errorMessage = xhr.responseJSON?.error || 'An error occurred';
-              alert(errorMessage);
+              showCustomAlert(errorMessage);
               console.log(xhr.responseJSON);
           }
       });
@@ -236,7 +269,7 @@ $(document).ready(function () {
         error: function (xhr) {
             // Handle error response
             const errorMessage = xhr.responseJSON?.message || 'Failed to verify the code. Please try again.';
-            alert(errorMessage);
+            showCustomAlert(errorMessage);
             console.log(xhr.responseJSON);
         }
     });
@@ -249,7 +282,7 @@ $(document).ready(function () {
 
     // Check if both passwords match
     if (newPassword !== confirmPassword) {
-      alert('Passwords do not match. Please try again.');
+      showCustomAlert('Passwords do not match. Please try again.');
       return;
     }
 
@@ -257,7 +290,7 @@ $(document).ready(function () {
     const forgotPasswordToken = localStorage.getItem('forgotPasswordToken');
     
     if (!forgotPasswordToken) {
-      alert('No forgot password token found.');
+      showCustomAlert('No forgot password token found.');
       return;
     }
 
@@ -271,7 +304,7 @@ $(document).ready(function () {
       },
       data: JSON.stringify({ new_password: newPassword }), // Send the new password
       success: function (response) {
-        alert('Your password has been successfully updated.');
+        showCustomAlert('Your password has been successfully updated.');
         console.log(response);
         
         // Optionally, redirect the user or show a success message
@@ -279,7 +312,7 @@ $(document).ready(function () {
       },
       error: function (xhr) {
         const errorMessage = xhr.responseJSON?.message || 'Error updating password. Please try again.';
-        alert(errorMessage);
+        showCustomAlert(errorMessage);
         console.log(xhr.responseJSON);
       }
     });
