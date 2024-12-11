@@ -19,9 +19,6 @@ from auth import (
 )
 from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
-from routers.clinics import ClinicsResource
-from routers.clinics import ClinicsResource
-from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
 from routers.patients import PatientsResource, PatientsByDoctorsResource
 from routers.schedules import DoctorScheduleResource
 from routers.appointments import AppointmentsResource
