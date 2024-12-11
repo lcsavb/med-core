@@ -6,8 +6,19 @@ from flask_restful import Api
 from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
-
-from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, ProtectedResource, Verify2FAResource, ForgotPasswordResource, VerifyAuthPasswordResetResource, UpdatePasswordResource
+from auth import (
+    LoginResource,
+    RegisterResource,
+    LogoutResource,
+    StatusResource,
+    ProtectedResource,
+    Verify2FAResource,
+    ForgotPasswordResource,
+    VerifyAuthPasswordResetResource,
+    UpdatePasswordResource,
+)
+from routers.clinics import ClinicsResource
+from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
 from routers.clinics import ClinicsResource
 from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
