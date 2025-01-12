@@ -170,26 +170,37 @@ footer {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.patient-form-group {
-    margin-bottom: 15px;
+fieldset {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
 }
 
-.patient-form-group label {
+legend {
+    font-weight: bold;
+    color: #555;
+}
+
+label {
     display: block;
-    font-size: 1rem;
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
+    color: #555;
 }
 
-.patient-form-group input,
-.patient-form-group textarea,
-.patient-form-group select {
+
+
+
+input, select, textarea {
     width: 100%;
-    padding: 10px;
+    padding: 0.75rem;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 1rem;
     box-sizing: border-box;
+    margin-bottom: 1rem;
+    font-size: 1rem;
 }
+
 
 /* Buttons */
 /* Reusable button style */

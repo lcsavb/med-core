@@ -3,6 +3,7 @@ const patientContainer = document.getElementById("patientContainer");
 const dynamicContent = document.getElementById("dynamicContent");
 const addPatientButton = document.getElementById("addPatientButton");
 
+
 // Function to generate and display the form
 function showPatientForm() {
   // Clear existing content
@@ -27,28 +28,40 @@ function showPatientForm() {
       <label for="patientAnamnesis">Anamnesis:</label>
       <textarea id="patientAnamnesis" name="patientAnamnesis" required></textarea><br><br>
 
-      <button type="submit">Submit</button>
-      <button type="button" id="cancelFormButton">Cancel</button>
+      <button type="submit" class="button-style">Submit</button>
+      <button type="button" id="cancelFormButton" class="button-style">Back</button>
     </form>
   `;
 
   // Add form container to dynamic content area
-  dynamicContent.appendChild(formContainer);
+dynamicContent.appendChild(formContainer);
+console.log("Form container appended to dynamic content.");
 
-  // Event listener for form submission
-  const form = document.getElementById("patientForm");
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("patientName").value;
-    const anamnesis = document.getElementById("patientAnamnesis").value;
-    addPatient(name, anamnesis);
-  });
+// Event listener for form submission
+const form = document.getElementById("patientForm");
+console.log("Attaching event listener for form submission.");
+form.addEventListener("submit", (e) => {
+  e.preventDefault(); // Prevent default form submission
+  const name = document.getElementById("patientName").value.trim();
+  const anamnesis = document.getElementById("patientAnamnesis").value.trim();
 
-  // Cancel button functionality
+  console.log("Form submitted with data:", { name, anamnesis });
+
+  if (name === "" || anamnesis === "") {
+    alert("All fields are required.");
+    return;
+  }
+
+  console.log("Adding patient:", { name, anamnesis });
+  addPatient(name, anamnesis);
+});
+
+  // Attach event listener to the dynamically created Back button
   const cancelFormButton = document.getElementById("cancelFormButton");
   cancelFormButton.addEventListener("click", () => {
-    dynamicContent.innerHTML = "";
-    patientContainer.style.display = "block";
+    // Hide the form and return to the patient list
+    dynamicContent.innerHTML = ""; // Clear the form
+    patientContainer.style.display = "block"; // Show the patient list
   });
 }
 
@@ -64,8 +77,8 @@ function addPatient(name, anamnesis) {
   patientList.appendChild(patientItem);
 
   // Return to patient list view
-  dynamicContent.innerHTML = "";
-  patientContainer.style.display = "block";
+  dynamicContent.innerHTML = ""; // Clear the form
+  patientContainer.style.display = "block"; // Show the patient list
 }
 
 // Event listener for "Add Patient" button

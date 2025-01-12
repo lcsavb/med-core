@@ -1,3 +1,13 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const backToListButton = document.getElementById("backToList");
+  if (backToListButton) {
+    backToListButton.addEventListener("click", () => {
+      document.getElementById("patientDetails").style.display = "none";
+      document.getElementById("patientContainer").style.display = "block";
+    });
+  }
+});
+
 // References to elements
 const patientListContainer = document.getElementById("patientContainer");
 const patientDetailsContainer = document.getElementById("patientDetails");
