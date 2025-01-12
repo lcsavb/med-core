@@ -14,8 +14,7 @@
 }
 
 #loginContainer, #registerContainer{
-   
-
+    
     border: 1px solid #ccc;
     /* Make a shadow of a border*/
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

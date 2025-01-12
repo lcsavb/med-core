@@ -93,3 +93,122 @@ footer {
   .closebtn:hover {
     color: black;
   }
+
+
+
+    /* General styling for patient list */
+.patient-list-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #f3f3f3;
+    font-weight: bold;
+  }
+  
+  .patient-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .patient-item:hover {
+    background-color: #e9e9e9;
+    cursor: pointer;
+  }
+  
+  .patient-details-container {
+    padding: 20px;
+  }
+  
+  #anamnesisContent p {
+    margin: 10px 0;
+  }
+  
+  /* Style for Add Patient Button - Matching Dashboard Style */
+.add-patient-button {
+    background-color: #fff; /* Matching the dashboard's white background */
+    border: 1px solid #ccc; /* Border similar to the dashboard */
+    padding: 10px 20px; /* Increased padding for consistency */
+    margin: 20px auto; /* Centered alignment if applicable */
+    border-radius: 8px; /* Rounded corners like the dashboard */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Matching the shadow style */
+    font-size: 1rem; /* Uniform font size */
+    cursor: pointer;
+    color: #007bff; /* Blue color for text to match interactive elements */
+    text-align: center;
+}
+
+.add-patient-button:hover {
+    background-color: #f0f0f0; /* Subtle hover effect matching dashboard's header */
+    border-color: #bbb; /* Slightly darker border on hover */
+    color: #0056b3; /* Darker blue text on hover */
+}
+
+/* Patient-specific styles */
+.patient-form-container {
+    width: 100%;
+    height: 100vh;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.patient-form {
+    width: 100%;
+    max-width: 800px; /* Restrict maximum width for readability */
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.patient-form-group {
+    margin-bottom: 15px;
+}
+
+.patient-form-group label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.patient-form-group input,
+.patient-form-group textarea,
+.patient-form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+/* Reusable button style */
+.button-style {
+    background-color: #fff; /* Matching the dashboard's white background */
+    border: 1px solid #ccc; /* Border similar to the dashboard */
+    padding: 10px 20px; /* Consistent padding */
+    margin: 20px auto; /* Centered alignment if applicable */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Matching shadow style */
+    font-size: 1rem; /* Uniform font size */
+    cursor: pointer;
+    color: #007bff; /* Blue color for text */
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.button-style:hover {
+    background-color: #f0f0f0; /* Subtle hover effect */
+    border-color: #bbb; /* Slightly darker border on hover */
+    color: #0056b3; /* Darker blue text on hover */
+}
