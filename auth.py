@@ -257,7 +257,7 @@ class LogoutResource(Resource):
 def send_verification_email(recipient_email, code):
     """Send an email with the verification code to the user."""
     sender_email = "medcorelogin@gmail.com"
-    sender_password = "qjba owmh dznj yiek"
+    sender_password = "qprd vvhq rxqy xbbp"
     
     subject = "Your MedCore Login Verification Code"
     body = f"Your login verification code is: {code}. This code will expire in 5 minutes."

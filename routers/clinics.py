@@ -20,8 +20,8 @@ class ClinicsSchema(Schema):
     phone = fields.Str(required=True)
     email = fields.Str(required=True)
     website = fields.Str(required=False)
-    clinic_type = fields.Str(required=True)
-    user_id = fields.Int(required=True)
+    clinic_type = fields.Str(required=False)
+    user_id = fields.Int(required=False)
     created_at = fields.DateTime(required=True) 
 
     @post_load
@@ -29,17 +29,44 @@ class ClinicsSchema(Schema):
         return data
     
 
-
 class ClinicsResource(Resource):
-    def get(self, clinic_id):
-        # Query the database to get the clinic by its ID
-        with engine.connect() as conn:
-            result = conn.execute(f"SELECT * FROM clinics WHERE id = {clinic_id}")
-            clinic = result.fetchone()
-            if clinic:
-                return dict(clinic), 200
-            else:
-                return {"message": "Clinic not found"}, 404
+    def get(self):
+        # Get query parameters
+        clinic_id = request.args.get("clinic_id")
+        user_id = request.args.get("user_id")
+
+        try:
+            # Start the base query
+            query = "SELECT * FROM clinics"
+            params = {}
+
+            # Dynamically build WHERE conditions
+            conditions = []
+            if clinic_id:
+                conditions.append("id = :clinic_id")
+                params["clinic_id"] = clinic_id
+            if user_id:
+                conditions.append("user_id = :user_id")
+                params["user_id"] = user_id
+
+            # Add conditions to query if any exist
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+
+            # Execute the query
+            with engine.connect() as conn:
+                result = conn.execute(text(query), params)
+                clinics = [dict(row) for row in result]
+                if clinics:
+                    return {"clinics": clinics}, 200
+                else:
+                    return {"message": "No clinics found"}, 404
+        except Exception as e:
+            logging.error(f"Error retrieving clinic: {e}")
+            return {"message": "An unexpected error occurred"}, 500
+
+
+            
             
     def post(self):
         clinic_schema = ClinicsSchema()
