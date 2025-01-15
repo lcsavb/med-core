@@ -9,14 +9,14 @@ $(document).ready(function () {
     let appointments = [];
   
     // Function to load patient data
-    function loadPatientData(date) {
+    function loadPatientData(date, doctorId, clinicId) {
       console.log('Loading patient data for date:', date); // Log the date parameter
       $.ajax({
-        url: 'http://0.0.0.0/api/appointments/',
+        url: '0.0.0.0/api/patients',
         type: 'GET',
         data: {
-          clinicId: 1,
-          doctorId: 4,
+          clinicId: clinicId,
+          doctorId: doctorId,
           date: date,
         },
         success: function (response) {

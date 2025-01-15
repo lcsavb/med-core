@@ -1,85 +1,161 @@
-// DOM references
-const patientContainer = document.getElementById("patientContainer");
-const dynamicContent = document.getElementById("dynamicContent");
-const addPatientButton = document.getElementById("addPatientButton");
+$(document).ready(function () {
+  console.log("Document loaded for Patients Edit page");
 
+  // Function to show the Add Patient form
+  function showPatientForm() {
+    console.log("Displaying Add Patient form");
 
-// Function to generate and display the form
-function showPatientForm() {
-  // Clear existing content
-  patientContainer.style.display = "none";
-  dynamicContent.innerHTML = "";
+    // Clear existing content
+    $("#patientContainer").hide();
+    $("#dynamicContent").html("");
 
-  // Create form container
-  const formContainer = document.createElement("div");
-  formContainer.classList.add("patient-form-container");
-  formContainer.style.width = "100%";
-  formContainer.style.height = "100vh";
-  formContainer.style.backgroundColor = "#fff";
-  formContainer.style.padding = "20px";
+    // Create form container
+    const formContainer = document.createElement("div");
+    formContainer.classList.add("patient-form-container");
+    formContainer.style.width = "100%";
+    formContainer.style.height = "100vh";
+    formContainer.style.backgroundColor = "#fff";
+    formContainer.style.padding = "20px";
 
-  // Add form elements
-  formContainer.innerHTML = `
-    <h1>Add New Patient</h1>
-    <form id="patientForm">
-      <label for="patientName">Patient Name:</label>
-      <input type="text" id="patientName" name="patientName" required /><br><br>
-      
-      <label for="patientAnamnesis">Anamnesis:</label>
-      <textarea id="patientAnamnesis" name="patientAnamnesis" required></textarea><br><br>
+    // Add form elements
+    formContainer.innerHTML = `
+      <h2>Add New Patient</h2>
+      <form id="addPatientForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required><br><br>
+        
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required><br><br>
+        
+        <label for="picture">Picture (Base64):</label>
+        <textarea id="picture" name="picture" required></textarea><br><br>
+        
+        <label for="dateOfBirth">Date of Birth:</label>
+        <input type="date" id="dateOfBirth" name="dateOfBirth" required><br><br>
+        
+        <label for="gender">Gender:</label>
+        <select id="gender" name="gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select><br><br>
+        
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required><br><br>
+        
+        <label for="addressNumber">Address Number:</label>
+        <input type="text" id="addressNumber" name="addressNumber" required><br><br>
+        
+        <label for="addressComplement">Address Complement:</label>
+        <input type="text" id="addressComplement" name="addressComplement"><br><br>
+        
+        <label for="zip">ZIP Code:</label>
+        <input type="text" id="zip" name="zip" required><br><br>
+        
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone" required><br><br>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select><br><br>
+        
+        <label for="emergencyContactName">Emergency Contact Name:</label>
+        <input type="text" id="emergencyContactName" name="emergencyContactName" required><br><br>
+        
+        <label for="emergencyContactPhone">Emergency Contact Phone:</label>
+        <input type="text" id="emergencyContactPhone" name="emergencyContactPhone" required><br><br>
+        
+        <label for="nationality">Nationality:</label>
+        <input type="text" id="nationality" name="nationality" required><br><br>
+        
+        <label for="language">Language:</label>
+        <input type="text" id="language" name="language" required><br><br>
+        
+        <label for="insuranceProvider">Insurance Provider:</label>
+        <input type="text" id="insuranceProvider" name="insuranceProvider" required><br><br>
+        
+        <label for="insurancePolicyNumber">Insurance Policy Number:</label>
+        <input type="text" id="insurancePolicyNumber" name="insurancePolicyNumber" required><br><br>
+        
+        <button type="submit" class="button-style">Submit</button>
+        <button type="button" id="cancelFormButton" class="button-style">Cancel</button>
+      </form>
+    `;
 
-      <button type="submit" class="button-style">Submit</button>
-      <button type="button" id="cancelFormButton" class="button-style">Back</button>
-    </form>
-  `;
+    // Append form container to dynamic content
+    $("#dynamicContent").append(formContainer).show();
 
-  // Add form container to dynamic content area
-dynamicContent.appendChild(formContainer);
-console.log("Form container appended to dynamic content.");
+    // Attach event listener for form submission
+    $("#addPatientForm").on("submit", async function (event) {
+      event.preventDefault(); // Prevent form from submitting the default way
+      console.log("Add Patient form submitted");
 
-// Event listener for form submission
-const form = document.getElementById("patientForm");
-console.log("Attaching event listener for form submission.");
-form.addEventListener("submit", (e) => {
-  e.preventDefault(); // Prevent default form submission
-  const name = document.getElementById("patientName").value.trim();
-  const anamnesis = document.getElementById("patientAnamnesis").value.trim();
+      const patientData = {
+        first_name: $("#firstName").val(),
+        last_name: $("#lastName").val(),
+        picture: $("#picture").val(),
+        date_of_birth: $("#dateOfBirth").val(),
+        gender: $("#gender").val(),
+        address: $("#address").val(),
+        address_number: $("#addressNumber").val(),
+        address_complement: $("#addressComplement").val(),
+        zip: $("#zip").val(),
+        phone: $("#phone").val(),
+        email: $("#email").val(),
+        status: $("#status").val(),
+        emergency_contact_name: $("#emergencyContactName").val(),
+        emergency_contact_phone: $("#emergencyContactPhone").val(),
+        nationality: $("#nationality").val(),
+        language: $("#language").val(),
+        insurance_provider: $("#insuranceProvider").val(),
+        insurance_policy_number: $("#insurancePolicyNumber").val(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-  console.log("Form submitted with data:", { name, anamnesis });
+      console.log("Patient Data:", patientData);
 
-  if (name === "" || anamnesis === "") {
-    alert("All fields are required.");
-    return;
+      try {
+        const response = await fetch("http://0.0.0.0/api/patients", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(patientData),
+        });
+
+        if (response.ok) {
+          console.log("Patient added successfully");
+          // Optionally, you can refresh the patient list or show a success message
+          $("#dynamicContent").hide();
+          $("#patientContainer").show();
+          loadPatientList(); // Refresh the patient list
+        } else {
+          console.error("Failed to add patient");
+          alert("Failed to add patient. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+      }
+    });
+
+    // Attach event listener for cancel button
+    $("#cancelFormButton").on("click", function () {
+      console.log("Cancel button clicked");
+      $("#dynamicContent").hide();
+      $("#patientContainer").show();
+    });
   }
 
-  console.log("Adding patient:", { name, anamnesis });
-  addPatient(name, anamnesis);
-});
-
-  // Attach event listener to the dynamically created Back button
-  const cancelFormButton = document.getElementById("cancelFormButton");
-  cancelFormButton.addEventListener("click", () => {
-    // Hide the form and return to the patient list
-    dynamicContent.innerHTML = ""; // Clear the form
-    patientContainer.style.display = "block"; // Show the patient list
+  // Attach click listener for Add Patient button using event delegation
+  $(document).on("click", "#addPatientButton", function () {
+    console.log("Add Patient button clicked");
+    showPatientForm(); // Call the form display function
   });
-}
-
-// Add new patient to the list
-function addPatient(name, anamnesis) {
-  const patientList = document.getElementById("patientList");
-  const patientItem = document.createElement("div");
-  patientItem.classList.add("patient-item");
-  patientItem.innerHTML = `
-    <span class="patient-name">${name}</span>
-    <span class="patient-anamnesis">${anamnesis}</span>
-  `;
-  patientList.appendChild(patientItem);
-
-  // Return to patient list view
-  dynamicContent.innerHTML = ""; // Clear the form
-  patientContainer.style.display = "block"; // Show the patient list
-}
-
-// Event listener for "Add Patient" button
-addPatientButton.addEventListener("click", showPatientForm);
+});
