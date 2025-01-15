@@ -15,7 +15,7 @@ $(document).ready(function () {
     console.log("Loading patient list");
 
     try {
-      const response = await fetch("http://0.0.0.0/api/patients?clinic_id=1&doctor_id=1", {
+      const response = await fetch("http://0.0.0.0/api/patients?clinic_id=3", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -79,4 +79,7 @@ $(document).ready(function () {
       patientListContainer.style.display = "block";
     });
   }
+
+  // Make loadPatientList accessible globally
+  window.loadPatientList = loadPatientList;
 });

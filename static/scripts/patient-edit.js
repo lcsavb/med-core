@@ -95,6 +95,17 @@ $(document).ready(function () {
       event.preventDefault(); // Prevent form from submitting the default way
       console.log("Add Patient form submitted");
 
+      const formatDate = (date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const seconds = String(d.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      };
+
       const patientData = {
         first_name: $("#firstName").val(),
         last_name: $("#lastName").val(),
@@ -114,8 +125,8 @@ $(document).ready(function () {
         language: $("#language").val(),
         insurance_provider: $("#insuranceProvider").val(),
         insurance_policy_number: $("#insurancePolicyNumber").val(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: formatDate(new Date()),
+        updated_at: formatDate(new Date())
       };
 
       console.log("Patient Data:", patientData);
@@ -134,7 +145,7 @@ $(document).ready(function () {
           // Optionally, you can refresh the patient list or show a success message
           $("#dynamicContent").hide();
           $("#patientContainer").show();
-          loadPatientList(); // Refresh the patient list
+          window.loadPatientList(); // Refresh the patient list
         } else {
           console.error("Failed to add patient");
           alert("Failed to add patient. Please try again.");
