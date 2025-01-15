@@ -41,6 +41,8 @@ def create_app():
     jwt = JWTManager(app)
 
     # Resources
+
+    #User management
     api.add_resource(LoginResource, '/auth/login')
     api.add_resource(ForgotPasswordResource, '/auth/forgot-password')
     api.add_resource(RegisterResource, '/auth/register')
@@ -50,6 +52,8 @@ def create_app():
     api.add_resource(Verify2FAResource, '/auth/verify-2fa')
     api.add_resource(UpdatePasswordResource, '/auth/update-password')
     api.add_resource(VerifyAuthPasswordResetResource, '/api/verify-password-reset')
+
+    # Resources for the application
     api.add_resource(ClinicsResource, '/api/clinics')
     api.add_resource(AppointmentsResource, '/api/appointments/')
     api.add_resource(PatientsResource, '/api/patients', methods=["GET", "POST"])
