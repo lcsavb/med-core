@@ -15,7 +15,7 @@ $(document).ready(function () {
     console.log("Loading patient list");
 
     try {
-      const response = await fetch("http://0.0.0.0/api/patients?clinic_id=3", {
+      const response = await fetch("http://127.0.0.1/api/patients?clinic_id=3", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

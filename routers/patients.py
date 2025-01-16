@@ -1,13 +1,15 @@
 import logging
+import simplejson as json
 
 from marshmallow import Schema, fields, ValidationError, post_load
 from flask_restful import Resource
-from flask import request
+from flask import request, Response
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import date, datetime
 
 from db import engine
+
 
 class PatientsResource(Resource):
     def get(self):
@@ -34,15 +36,14 @@ class PatientsResource(Resource):
 
             with engine.connect() as connection:
                 result = connection.execute(text(query), params)
-                patients = [
-                    self.serialize_row(dict(row)) for row in result
-                ]
+                patients = [dict(row) for row in result]  # Convert rows to dictionaries
 
-            return {"patients": patients}, 200
+            # Return the patients list as a JSON response
+                return Response(json.dumps({"patients": patients}, default=str), mimetype='application/json')
 
-        except SQLAlchemyError as e:
-            logging.error(f"Error querying patients: {e}")
-            return {"message": "An unexpected error occurred. Please try again later."}, 500
+        
+        except Exception as e:
+            return {"message": f"An error occurred: {str(e)}"}, 500
 
 
     

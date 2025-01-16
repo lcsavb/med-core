@@ -132,7 +132,7 @@ $(document).ready(function () {
       console.log("Patient Data:", patientData);
 
       try {
-        const response = await fetch("http://0.0.0.0/api/patients", {
+        const response = await fetch("http://127.0.0.1/api/patients", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
