@@ -1,7 +1,9 @@
 /* login.css */
 
 
-
+.login-header {
+    color: #0c437e;
+}
 .login-container, .register-container {
     background-color: #fff;
     padding: 2rem;

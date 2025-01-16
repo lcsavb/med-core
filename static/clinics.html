@@ -1,22 +1,38 @@
-<div class="clinics-container" id="clinicsContainer">
-  <div class="row">
-    <div class="col-md-12">
-      <h1>Clinics</h1>
-      <!-- Add your content here -->
-      <input type="text" id="searchInput" placeholder="Search clinics..." />
-      <div class="clinic-list-header">
-        <span class="header-name">Clinic</span>
-        <span class="header-location">Location</span>
-      </div>
-      <div id="clinicList" class="scrollable-list"></div>
-    </div>
+<div class="clinic-container" id="clinicsContainer">
+  <h1>Clinic List</h1>
+
+  <!-- Search and Add Clinic Section -->
+  <div class="search-and-add">
+    <input type="text" id="searchInput" placeholder="Search clinics..." />
+    <button id="addClinicButton" class="button-style">➕ Add Clinic</button>
+  </div>
+
+  <!-- Clinic List Header -->
+  <div class="clinic-list-header">
+    <span class="header-name">Clinic Name</span>
+  </div>
+
+  <!-- Dynamic Clinic List -->
+  <div id="clinicList" class="scrollable-list">
+    <!-- Clinic items will be dynamically managed by JavaScript -->
   </div>
 </div>
 
+<!-- Clinic Details Section (Hidden Initially) -->
 <div id="clinicDetails" style="display: none">
   <div class="clinic-details-container">
-    <button id="backToClinics">Back to Clinics</button>
+    <button id="backToClinics" class="button-style">Back to Clinic List</button>
     <h2>Clinic Details</h2>
     <div id="clinicDetailsContent"></div>
   </div>
 </div>
+
+<!-- Add/Edit Clinic Form Section (Dynamic Content) -->
+<div id="dynamicContent" style="display: none">
+  <!-- Content will be dynamically injected here -->
+</div>
+
+<!-- Include JavaScript files -->
+<script src="/scripts/jquery.js"></script>
+<script src="/scripts/clinics.js"></script>
+<script src="/scripts/clinic-edit.js"></script>

@@ -1,70 +1,82 @@
-function initializeClinics() {
-    // Define the clinics variable in the correct scope
-    let clinics = [];
-  
-    // Function to load clinic data
-    function loadClinicData() {
-      $.ajax({
-        url: 'http://0.0.0.0/api/clinics/',
-        type: 'GET',
-        success: function (response) {
-          console.log('Data retrieved successfully:', response);
-          clinics = response.clinics; // Assign the received data to the clinics variable
-          loadClinicList(clinics);
+$(document).ready(function () {
+  console.log("Document loaded for Clinics page");
+
+  // References to elements
+  const clinicsContainer = document.getElementById("clinicsContainer");
+  const clinicDetailsContainer = document.getElementById("clinicDetails");
+  const clinicListElement = document.getElementById("clinicList");
+  const backToClinicsButton = document.getElementById("backToClinics");
+
+  // Function to load and display the clinic list
+  async function loadClinicList() {
+    console.log("Loading clinic list");
+
+    try {
+      const response = await fetch("http://0.0.0.0/api/clinics", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        error: function (_xhr, status, error) {
-          console.error('Error fetching data:', status, error);
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const clinics = data.clinics || [];
+        console.log("Clinics loaded successfully:", clinics);
+
+        // Display the clinic list
+        clinicListElement.innerHTML = ""; // Clear existing list
+
+        if (clinics.length === 0) {
+          clinicListElement.innerHTML = "<p>No clinics found.</p>";
+          return;
         }
-      });
+
+        clinics.forEach((clinic) => {
+          const clinicItem = document.createElement("div");
+          clinicItem.classList.add("clinic-item");
+          clinicItem.dataset.id = clinic.id;
+          clinicItem.innerHTML = `
+            <span class="clinic-name">${clinic.name}</span>
+          `;
+          clinicItem.addEventListener("click", () => showClinicDetails(clinic));
+          clinicListElement.appendChild(clinicItem);
+        });
+      } else {
+        const errorText = await response.text();
+        console.error(`Failed to load clinics: ${response.status} - ${errorText}`);
+        alert(`Error: ${response.status} - Failed to load clinics.`);
+      }
+    } catch (error) {
+      console.error("Error during GET request:", error);
+      alert("An unexpected error occurred while loading clinics. Please try again.");
     }
-  
-    // Load the list of clinics
-    const clinicListElement = $('#clinicList');
-    function loadClinicList(filteredClinics) {
-      clinicListElement.empty();
-      filteredClinics.forEach(clinic => {
-        const clinicName = clinic.name;
-        const clinicLocation = clinic.location;
-        const clinicItem = $('<div></div>')
-          .addClass('clinic-item')
-          .html(`
-            <span class="clinic-name">${clinicName}</span>
-            <span class="clinic-location">${clinicLocation}</span>
-          `)
-          .on('click', () => showClinicDetails(clinic));
-        clinicListElement.append(clinicItem);
-      });
-      console.log('Clinic list loaded:', filteredClinics);
-    }
-  
-    // Show clinic details
-    function showClinicDetails(clinic) {
-      $('#clinicsContainer').hide();
-      $('#clinicDetails').show();
-      $('#clinicDetailsContent').html(`
-        <h3>${clinic.name}</h3>
-        <p>Location: ${clinic.location}</p>
-        <p>Contact: ${clinic.contact}</p>
-      `);
-      console.log('Showing details for clinic:', clinic);
-    }
-  
-    // Back to clinics
-    $('#backToClinics').on('click', function () {
-      $('#clinicsContainer').show();
-      $('#clinicDetails').hide();
-    });
-  
-    $('#searchInput').on('input', function () {
-      const searchTerm = $(this).val().toLowerCase();
-      const filteredClinics = clinics.filter(clinic =>
-        clinic.name.toLowerCase().includes(searchTerm) ||
-        clinic.location.toLowerCase().includes(searchTerm)
-      );
-      loadClinicList(filteredClinics);
-      console.log('Search term:', searchTerm, 'Filtered clinics:', filteredClinics);
-    });
-  
-    // Initial load of clinic data
-    loadClinicData();
   }
+
+  // Load the clinic list on page load
+  loadClinicList();
+
+  // Show clinic details dynamically
+  function showClinicDetails(clinic) {
+    clinicsContainer.style.display = "none";
+    clinicDetailsContainer.style.display = "block";
+
+    const clinicDetailsContent = document.getElementById("clinicDetailsContent");
+    clinicDetailsContent.innerHTML = `
+      <p><strong>Name:</strong> ${clinic.name}</p>
+      <p><strong>Location:</strong> ${clinic.location}</p>
+      <p><strong>Description:</strong> ${clinic.description}</p>
+    `;
+  }
+
+  // Attach event listener for "Back to Clinics" button
+  backToClinicsButton.addEventListener("click", function () {
+    console.log("Back to Clinics button clicked");
+    clinicDetailsContainer.style.display = "none";
+    clinicsContainer.style.display = "block";
+  });
+
+  // Make loadClinicList accessible globally
+  window.loadClinicList = loadClinicList;
+});

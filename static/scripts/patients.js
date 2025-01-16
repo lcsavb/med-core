@@ -13,45 +13,57 @@ $(document).ready(function () {
   // Function to load and display the patient list
   async function loadPatientList() {
     console.log("Loading patient list");
-
+  
     try {
       const response = await fetch("http://0.0.0.0/api/patients?clinic_id=3", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          // Add Authorization header if required
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const patients = data.patients;
-        console.log("Patients loaded successfully", patients);
-
-        // Display the patient list
-        const patientList = document.getElementById("patientList");
-        patientList.innerHTML = ""; // Clear existing list
-
-        patients.forEach((patient) => {
-          const patientItem = document.createElement("div");
-          patientItem.classList.add("patient-item");
-          patientItem.dataset.id = patient.id;
-          patientItem.innerHTML = `
-            <span class="patient-name">${patient.first_name} ${patient.last_name}</span>
-            <span class="patient-anamnesis">${patient.anamnesis}</span>
-          `;
-          patientItem.addEventListener("click", () => showPatientDetails(patient));
-          patientList.appendChild(patientItem);
-        });
-      } else {
-        console.error("Failed to load patients");
-        alert("Failed to load patients. Please try again.");
+  
+      // Check for non-200 responses
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to load patients: ${response.status} - ${errorText}`);
+        alert(`Error: ${response.status} - Failed to load patients.`);
+        return;
       }
+  
+      const data = await response.json();
+      const patients = data.patients || [];
+      console.log("Patients loaded successfully:", patients);
+  
+      // Populate the patient list
+      const $patientList = $("#patientList");
+      $patientList.empty(); // Clear the existing list
+  
+      if (patients.length === 0) {
+        $patientList.append("<p>No patients found.</p>");
+        return;
+      }
+  
+      patients.forEach((patient) => {
+        const $patientItem = $(`
+          <div class="patient-item" data-id="${patient.id}">
+            <span class="patient-name">${patient.first_name} ${patient.last_name}</span>
+            <span class="patient-anamnesis">${patient.anamnesis || "No anamnesis available"}</span>
+          </div>
+        `);
+  
+        // Add click event listener to show patient details
+        $patientItem.on("click", () => showPatientDetails(patient));
+  
+        // Append the patient item to the list
+        $patientList.append($patientItem);
+      });
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred. Please try again.");
+      console.error("Error during GET request:", error);
+      alert("An unexpected error occurred while loading patients. Please try again.");
     }
   }
-
   // Load the patient list on page load
   loadPatientList();
 

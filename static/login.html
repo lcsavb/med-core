@@ -1,7 +1,7 @@
 <!-- Login Form Container -->
 
 <div class="login-container" id="loginContainer">
-  <h2>Login</h2>
+  <h2 class="login-header">Login</h2>
   <form id="loginForm">
     <div class="form-group">
       <label for="username">Username:</label>
@@ -38,17 +38,16 @@
   </p>
   <p>
     Forgot Your Password?
-    <a
-      href="#"
-      class="forgot-password-link"
-      data-css="login.css"
-      >Click Here</a
-    >
+    <a href="#" class="forgot-password-link" data-css="login.css">Click Here</a>
   </p>
 </div>
 
 <!-- Forgot Password Email Form Container -->
-<div class="forgot-password-container" id="forgotPasswordContainer" style="display: none;">
+<div
+  class="forgot-password-container"
+  id="forgotPasswordContainer"
+  style="display: none"
+>
   <h2>Reset Your Password</h2>
   <form id="forgotPasswordForm">
     <div class="form-group">
@@ -101,9 +100,12 @@
   </form>
 </div>
 
-
 <!-- New Password Form Container -->
-<div class="new-password-container" id="newPasswordContainer" style="display: none;">
+<div
+  class="new-password-container"
+  id="newPasswordContainer"
+  style="display: none"
+>
   <h2>Set a New Password</h2>
   <form id="newPasswordForm">
     <div class="form-group">
@@ -129,8 +131,6 @@
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 </div>
-
-
 
 <!-- Authentication Success Container -->
 <div id="authSuccessMessage" style="display: none">
