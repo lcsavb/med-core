@@ -22,6 +22,7 @@ from db import engine
 from models import construct_user
 from errors import ErrorHandler
 from error_messages import ErrorMessages  # Import from the new file
+import random
 
 
 SECRET_KEY = "your-secret-key"
@@ -91,6 +92,34 @@ class Verify2FAResource(Resource):
             return make_response(jsonify({'message': 'Invalid verification code'}), 401)
 
 
+class VerifyAuthPasswordResetResource(Resource):
+    @jwt_required()  # This decorator ensures the user is authenticated via JWT token
+    def post(self):
+        # Retrieve the entered verification code from the request
+        entered_code = request.json.get('verification_code')
+
+        # Decode the temporary token and get the user identity data
+        decoded_token = get_jwt_identity()  # Decodes the JWT token to retrieve user data
+        email = decoded_token.get("email")
+
+        # Fetch the verification code hash from the JWT token (could be generated earlier in the password reset process)
+        verification_code_hash = decoded_token.get("verification_code_hash")
+
+        if not verification_code_hash:
+            return make_response(jsonify({'message': 'No verification code hash found'}), 400)
+
+        # Validate the entered code by comparing it to the hash
+        entered_code_str = ErrorHandler.validate_conversion(entered_code, str)
+
+        # If the entered code matches the hash, return success
+        if check_password_hash(verification_code_hash, entered_code_str):
+            return make_response(jsonify({'message': '2FA successful!'}), 200)
+
+        # If the code does not match, return an error response
+        return make_response(jsonify({'message': 'Invalid verification code'}), 401)
+
+
+
 class RegisterResource(Resource):
     def post(self):
         username = request.json.get('username')
@@ -143,6 +172,77 @@ class ProtectedResource(Resource):
             return jsonify({"message": "Hello Doctor! You have restricted access."})
         else:
             return jsonify({"message": "Access denied! Insufficient role privileges."}), 403
+        
+class ForgotPasswordResource(Resource):
+    def post(self):
+        """Handle forgot password requests."""
+        data = request.json  # Expecting JSON input with 'email'
+        email = data.get('email')
+        
+        if not email:
+            return make_response(jsonify({'error': 'Email is required'}), 400)
+
+        # Check if the user exists in the database
+        user_data = get_user_by_email(email)
+        if not user_data:
+            return make_response(jsonify({'error': 'Email does not exist'}), 404)
+
+        # Generate a verification code (e.g., a 6-digit number)
+        verification_code = f"{random.randint(100000, 999999)}"
+        verification_code_hash = generate_password_hash(verification_code)
+
+        try:
+            temporary_token = create_access_token(
+                identity={
+                    "email": email,
+                    "verification_code_hash": verification_code_hash
+                },
+                expires_delta=timedelta(minutes=5)
+            )
+        except Exception as e:
+            return make_response(jsonify({"error": "Token creation failed", "details": str(e)}), 500)
+
+
+        # Send the email in a separate thread
+        email_thread = threading.Thread(target=send_verification_email, args=(email, verification_code))
+        email_thread.start()
+
+        return make_response(jsonify({
+            'temporary_token': temporary_token,
+            'message': 'Verification code sent!'
+        }), 200)
+        
+class UpdatePasswordResource(Resource):
+    @jwt_required()  # Ensure the request is authenticated with JWT token
+    def post(self):
+        # Get the JWT token and extract email from it
+        decoded_token = get_jwt_identity()
+        email = decoded_token.get("email")
+
+        # Ensure the email exists in the token (this should be part of the forgot password process)
+        if not email:
+            return make_response(jsonify({'message': 'Email not found in token'}), 400)
+        
+        # Retrieve the new password from the request body
+        new_password = request.json.get('new_password')
+        
+        if not new_password:
+            return make_response(jsonify({'message': 'New password is required'}), 400)
+        
+        # Hash the new password
+        hashed_password = generate_password_hash(new_password)
+        
+        # Get the user from the database by email
+        user = get_user_by_email(email)
+        
+        if not user:
+            return make_response(jsonify({'message': 'User not found'}), 404)
+        
+        # Update the user's password in the database
+        update_user_password(email, hashed_password)
+        
+        # Respond with a success message
+        return make_response(jsonify({'message': 'Password updated successfully'}), 200)
 
 
 
@@ -157,7 +257,7 @@ class LogoutResource(Resource):
 def send_verification_email(recipient_email, code):
     """Send an email with the verification code to the user."""
     sender_email = "medcorelogin@gmail.com"
-    sender_password = "qjba owmh dznj yiek"
+    sender_password = "qprd vvhq rxqy xbbp"
     
     subject = "Your MedCore Login Verification Code"
     body = f"Your login verification code is: {code}. This code will expire in 5 minutes."
@@ -209,7 +309,16 @@ def authenticate_user(username, password):
         
         if user_data and check_password_hash(user_data['password_hash'], password):
             return construct_user(user_data)
+        
+def update_user_password(email, hashed_password):
+    """Update the user's password in the database."""
+    with engine.connect() as conn:
+        # Start a transaction manually
+        with conn.begin():
+            query = text("UPDATE users SET password_hash = :password_hash WHERE email = :email")
+            conn.execute(query, {'password_hash': hashed_password, 'email': email})
 
+        
 def get_user_by_username(username):
     """Get a user by their username."""
     with engine.connect() as conn:  # Use engine.connect() to get a connection
@@ -219,6 +328,14 @@ def get_user_by_username(username):
         
         if user_data:
             return construct_user(user_data)
+        
+def get_user_by_email(email):
+    """Get a user by their email."""
+    with engine.connect() as conn:
+        query = text("SELECT * FROM users WHERE email = :email")
+        result = conn.execute(query, {'email': email})
+        user_data = result.fetchone()  # Fetch one result
+        return user_data
 
 def search_user_data(user_id):
     """Get a user's role by their user ID searching the Database."""

@@ -6,9 +6,17 @@ from flask_restful import Api
 from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
-
-from auth import LoginResource, RegisterResource, LogoutResource, StatusResource, ProtectedResource, Verify2FAResource
-from routers.clinics import ClinicsResource
+from auth import (
+    LoginResource,
+    RegisterResource,
+    LogoutResource,
+    StatusResource,
+    ProtectedResource,
+    Verify2FAResource,
+    ForgotPasswordResource,
+    VerifyAuthPasswordResetResource,
+    UpdatePasswordResource,
+)
 from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
 from routers.patients import PatientsResource, PatientsByDoctorsResource
@@ -33,12 +41,19 @@ def create_app():
     jwt = JWTManager(app)
 
     # Resources
+
+    #User management
     api.add_resource(LoginResource, '/auth/login')
+    api.add_resource(ForgotPasswordResource, '/auth/forgot-password')
     api.add_resource(RegisterResource, '/auth/register')
     api.add_resource(LogoutResource, '/auth/logout')
     api.add_resource(StatusResource, '/auth/status')
     api.add_resource(ProtectedResource, '/auth/protected')
     api.add_resource(Verify2FAResource, '/auth/verify-2fa')
+    api.add_resource(UpdatePasswordResource, '/auth/update-password')
+    api.add_resource(VerifyAuthPasswordResetResource, '/api/verify-password-reset')
+
+    # Resources for the application
     api.add_resource(ClinicsResource, '/api/clinics')
     api.add_resource(AppointmentsResource, '/api/appointments/')
     api.add_resource(PatientsResource, '/api/patients', methods=["GET", "POST"])
