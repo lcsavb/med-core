@@ -211,38 +211,51 @@ class ForgotPasswordResource(Resource):
             'temporary_token': temporary_token,
             'message': 'Verification code sent!'
         }), 200)
-        
 class UpdatePasswordResource(Resource):
     @jwt_required()  # Ensure the request is authenticated with JWT token
     def post(self):
-        # Get the JWT token and extract email from it
-        decoded_token = get_jwt_identity()
-        email = decoded_token.get("email")
+        try:
+            # Get the JWT token and decode it
+            decoded_token = get_jwt_identity()
+            print(f"Decoded Token: {decoded_token}")
 
-        # Ensure the email exists in the token (this should be part of the forgot password process)
-        if not email:
-            return make_response(jsonify({'message': 'Email not found in token'}), 400)
-        
-        # Retrieve the new password from the request body
-        new_password = request.json.get('new_password')
-        
-        if not new_password:
-            return make_response(jsonify({'message': 'New password is required'}), 400)
-        
-        # Hash the new password
-        hashed_password = generate_password_hash(new_password)
-        
-        # Get the user from the database by email
-        user = get_user_by_email(email)
-        
-        if not user:
-            return make_response(jsonify({'message': 'User not found'}), 404)
-        
-        # Update the user's password in the database
-        update_user_password(email, hashed_password)
-        
-        # Respond with a success message
-        return make_response(jsonify({'message': 'Password updated successfully'}), 200)
+            # Extract email directly from the decoded token
+            email = decoded_token.get("email")
+            print(f"Email from token: {email}")
+
+            # Ensure the email exists in the token
+            if not email:
+                return make_response(jsonify({'message': 'Email not found in token'}), 400)
+
+            # Retrieve the new password from the request body
+            new_password = request.json.get('new_password')
+            print(f"New Password received: {new_password}")
+
+            if not new_password:
+                return make_response(jsonify({'message': 'New password is required'}), 400)
+
+            # Hash the new password
+            hashed_password = generate_password_hash(new_password)
+
+            # Get the user from the database by email
+            user = get_user_by_email(email)
+            print(f"User found: {user}")
+
+            if not user:
+                return make_response(jsonify({'message': 'User not found'}), 404)
+
+            # Update the user's password in the database
+            update_user_password(email, hashed_password)
+
+            # Respond with a success message
+            return make_response(jsonify({'message': 'Password updated successfully'}), 200)
+
+        except Exception as e:
+            # Log and return the error
+            print(f"Error occurred: {str(e)}")
+            return make_response(jsonify({'message': 'Internal server error occurred', 'error': str(e)}), 500)
+
+
 
 
 
