@@ -9,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import date, datetime
 
 from db import engine
+from helper_functions import create_care_link
 
 
 class PatientsResource(Resource):
@@ -51,7 +52,9 @@ class PatientsResource(Resource):
     def post(self):
         patient_data = request.get_json()
 
-
+        clinic_id = patient_data.get("clinic_id")
+        doctor_id = patient_data.get("doctor_id")
+        
         insert_query = text(
             """
             INSERT INTO patients (
@@ -68,9 +71,14 @@ class PatientsResource(Resource):
             """
         )
 
+        
         try:
             with engine.connect() as connection:
-                connection.execute(insert_query, **patient_data)
+                result = connection.execute(insert_query, **patient_data)
+                patient_id = result.lastrowid  # Retrieve the last inserted patient ID
+
+                create_care_link(doctor_id, clinic_id, patient_id)
+
             return {"message": "Patient created successfully"}, 201
         except SQLAlchemyError as e:
             logging.error(f"Error creating patient: {e}")
