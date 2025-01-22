@@ -2,6 +2,7 @@ import logging
 import os
 
 from flask import Flask, jsonify
+from flask_cors import CORS
 from flask_restful import Api
 from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -71,6 +72,7 @@ def create_app():
     return app
 
 app = create_app()
+CORS(app)
 
 # Rate limiter initialization and configuration to prevent abuse and brute force attacks
 limiter.init_app(app)
