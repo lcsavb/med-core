@@ -54,7 +54,7 @@ def create_app():
     api.add_resource(VerifyAuthPasswordResetResource, '/api/verify-password-reset')
 
     # Resources for the application
-    api.add_resource(ClinicsResource, '/api/clinics')
+    api.add_resource(ClinicsResource, '/api/clinics', methods=["GET", "POST"])
     api.add_resource(AppointmentsResource, '/api/appointments/')
     api.add_resource(PatientsResource, '/api/patients', methods=["GET", "POST"])
 
