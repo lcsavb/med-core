@@ -1,5 +1,6 @@
 import logging
 import simplejson as json
+import random
 
 from marshmallow import Schema, fields, ValidationError, post_load
 from flask_restful import Resource
@@ -77,7 +78,13 @@ class PatientsResource(Resource):
                 result = connection.execute(insert_query, **patient_data)
                 patient_id = result.lastrowid  # Retrieve the last inserted patient ID
 
-                create_care_link(doctor_id, clinic_id, patient_id)
+                # generate a random care_link id
+
+
+                ### THAT IS A WORKAROUND, SINCE I WAS NOT ABLE TO CHANGE THE CARE_LINK ID TO AUTO INCREMENT
+                care_link_id = random.randint(100000, 999999)
+
+                create_care_link(care_link_id, doctor_id, clinic_id, patient_id)
 
             return {"message": "Patient created successfully"}, 201
         except SQLAlchemyError as e:

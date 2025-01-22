@@ -1,12 +1,17 @@
 from datetime import datetime
 
 from flask_restful import Resource
-from flask import jsonify
+from flask import jsonify, request
 from sqlalchemy import text
 from db import engine
 
 class ProfessionalsResource(Resource):
-    def get(self, clinic_id):
+    def get(self):
+
+        clinic_id = request.args.get("clinic_id")
+        if not clinic_id:
+            return {"message": "Clinic ID is required"}, 400
+        
         # Securely query the database to get all professionals for the specified clinic
         query = text("""
             SELECT hp.* FROM healthcare_professionals hp
