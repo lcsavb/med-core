@@ -16,6 +16,7 @@ from auth import (
     ForgotPasswordResource,
     VerifyAuthPasswordResetResource,
     UpdatePasswordResource,
+    ContactResource
 )
 from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
@@ -44,6 +45,8 @@ def create_app():
 
     #User management
     api.add_resource(LoginResource, '/auth/login')
+    api.add_resource(ContactResource
+                     , '/auth/contact')
     api.add_resource(ForgotPasswordResource, '/auth/forgot-password')
     api.add_resource(RegisterResource, '/auth/register')
     api.add_resource(LogoutResource, '/auth/logout')

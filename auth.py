@@ -251,6 +251,24 @@ class LogoutResource(Resource):
     def post(self):
         # No session to clear, tokens are stateless, just remove token from client-side
         return make_response(jsonify({'message': 'Logged out successfully.'}), 200)
+    
+class ContactResource(Resource):
+    def post(self):
+        # Extract form data (name, email, message)
+        sender_name = request.json.get('name')
+        sender_email = request.json.get('email')
+        message_content = request.json.get('message')
+
+        # Validate the input
+        if not sender_name or not sender_email or not message_content:
+            return {'message': 'Missing required fields: name, email, message'}, 400
+
+        # Send email asynchronously using a background thread
+        email_thread = threading.Thread(target=send_contact_email, args=(sender_name, sender_email, message_content))
+        email_thread.start()
+
+        # Return a response indicating success
+        return jsonify({'message': 'Your message has been sent successfully!'})
 
 
 # Utility Functions
@@ -278,6 +296,43 @@ def send_verification_email(recipient_email, code):
         server.sendmail(sender_email, recipient_email, msg.as_string())
         server.quit()
         print(f"Verification email sent to {recipient_email}")
+    except Exception as e:
+        print("Error sending email:", e)
+        
+        
+def send_contact_email(sender_name, sender_email, message_content):
+    """Send an email with the contact form submission."""
+    recipient_email = "medcorelogin@gmail.com"
+    sender_email_address = "medcorelogin@gmail.com"  # You can replace this with the sender's email address if necessary
+    sender_password = "qprd vvhq rxqy xbbp"  # Make sure this is a secure method of storing the password (like using environment variables or a secrets manager)
+    
+    subject = "New Contact Form Submission"
+    body = f"""
+    You have received a new message from the contact form:
+    
+    Name: {sender_name}
+    Email: {sender_email}
+    
+    Message:
+    {message_content}
+    """
+    
+    # Create the email message
+    msg = MIMEMultipart()
+    msg['From'] = sender_email_address
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Set up the SMTP server
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email_address, sender_password)
+        print(f"Logged in to SMTP server as {sender_email_address}")
+        server.sendmail(sender_email_address, recipient_email, msg.as_string())
+        server.quit()
+        print(f"Contact email sent to {recipient_email}")
     except Exception as e:
         print("Error sending email:", e)
 
