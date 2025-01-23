@@ -1,10 +1,12 @@
 import logging
 import simplejson as json
 import random
+import os
+from werkzeug.utils import secure_filename
 
 from marshmallow import Schema, fields, ValidationError, post_load
 from flask_restful import Resource
-from flask import request, Response
+from flask import request, Response, current_app as app
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import date, datetime
@@ -12,6 +14,8 @@ from datetime import date, datetime
 from db import engine
 from helper_functions import create_care_link
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 class PatientsResource(Resource):
     def get(self):
@@ -51,7 +55,20 @@ class PatientsResource(Resource):
     
 
     def post(self):
-        patient_data = request.get_json()
+        # Check if the request is JSON or multipart/form-data
+        if request.content_type.startswith('application/json'):
+            patient_data = request.get_json()
+        elif request.content_type.startswith('multipart/form-data'):
+            patient_data = request.form.to_dict()
+            file = request.files.get('picture')
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                patient_data['picture'] = filename
+            else:
+                patient_data['picture'] = None
+        else:
+            return {"error": "Unsupported Content-Type"}, 400
 
         clinic_id = patient_data.get("clinic_id")
         doctor_id = patient_data.get("doctor_id")

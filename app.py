@@ -74,6 +74,9 @@ def create_app():
 app = create_app()
 CORS(app)
 
+app.config['UPLOAD_FOLDER'] = 'static/uploads/'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+
 # Rate limiter initialization and configuration to prevent abuse and brute force attacks
 limiter.init_app(app)
 
