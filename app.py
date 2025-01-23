@@ -21,7 +21,7 @@ from auth import (
 )
 from routers.clinics import ClinicsResource
 from routers.professionals import ProfessionalsResource, ProfessionalByIdResource
-from routers.patients import PatientsResource, PatientsByDoctorsResource, PatientByIdResource
+from routers.patients import PatientsResource, PatientsByDoctorsResource, PatientByIdResource, CareLinkResource
 from routers.schedules import DoctorScheduleResource
 from routers.appointments import AppointmentsResource
 from routers.anamnesis import MedicalRecordResource
@@ -61,7 +61,7 @@ def create_app():
     api.add_resource(AppointmentsResource, '/api/appointments/')
     api.add_resource(PatientsResource, '/api/patients', methods=["GET", "POST"])
     api.add_resource(PatientByIdResource, '/api/patient_by_id/<int:patient_id>')
-
+    api.add_resource(CareLinkResource, '/api/care_link', methods=["GET"])
     api.add_resource(MedicalRecordResource, '/api/medical-records')
     api.add_resource(ProfessionalsResource, '/api/doctors')
     api.add_resource(ProfessionalByIdResource, '/api/clinics/<int:clinic_id>/doctors/<int:healthcare_professional_id>')

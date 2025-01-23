@@ -82,7 +82,7 @@ class PatientsResource(Resource):
 
 
                 ### THAT IS A WORKAROUND, SINCE I WAS NOT ABLE TO CHANGE THE CARE_LINK ID T
-                care_link_id = random.randint(100000, 999999)
+                care_link_id = random.randint(1, 2147483647)  # Suitable for a 32-bit integer ID
 
                 create_care_link(care_link_id, doctor_id, clinic_id, patient_id)
 
@@ -209,3 +209,40 @@ class PatientsByDoctorsResource(Resource):
         except SQLAlchemyError as e:
             logging.error(f"Error creating patient: {e}")
             return {"message": "Error creating patient"}, 500
+        
+
+class CareLinkResource(Resource):
+    def get(self):
+        doctor_id = request.args.get("doctor_id")
+        clinic_id = request.args.get("clinic_id")
+        patient_id = request.args.get("patient_id")
+        print("=====================================================================================================")
+        print(doctor_id, clinic_id, patient_id)
+        print("=====================================================================================================")
+
+        if not doctor_id or not clinic_id or not patient_id:
+            return {"message": "doctor_id, clinic_id, and patient_id are required"}, 400
+
+        query = text("""
+            SELECT * FROM care_link
+            WHERE doctor_id = :doctor_id AND clinic_id = :clinic_id AND patient_id = :patient_id
+        """)
+        params = {
+            "doctor_id": doctor_id,
+            "clinic_id": clinic_id,
+            "patient_id": patient_id
+        }
+
+        try:
+            with engine.connect() as connection:
+                result = connection.execute(query, params)
+                care_link = result.fetchone()
+                print(care_link)
+
+            if care_link:
+                return care_link["id"], 200
+            else:
+                return {"message": "Care link not found"}, 404
+        except SQLAlchemyError as e:
+            return {"message": f"Error retrieving care link: {str(e)}"}, 500
+

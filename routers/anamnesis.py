@@ -1,10 +1,12 @@
 from datetime import datetime
 import hashlib
+import simplejson as json
 
-from flask import request, jsonify
+from flask import request, Response
 from flask_restful import Resource
 from marshmallow import ValidationError, Schema, fields
 from sqlalchemy import text
+
 
 
 from db import engine
@@ -23,7 +25,24 @@ class MedicalRecordInsertSchema(Schema):
     
 class MedicalRecordResource(Resource):
     def get(self):
-        pass
+        care_link_id = request.args.get("care_link_id")
+        if not care_link_id:
+            return Response(json.dumps({"error": "Care Link ID is required."}), status=400, mimetype='application/json')
+        
+        query = """
+                SELECT * FROM medical_records
+                WHERE care_link_id = :care_link_id
+                """
+        try:
+            with engine.connect() as conn:
+                result = conn.execute(text(query), care_link_id=care_link_id)
+                records = [dict(row) for row in result]
+            return Response(json.dumps({"records": records}, default=str), status=200, mimetype='application/json')
+        except Exception as e:
+            return Response(json.dumps({"error": f"Failed to retrieve records: {str(e)}"}), status=500, mimetype='application/json')
+
+
+
     
     def put(self):
         pass
@@ -37,26 +56,22 @@ class MedicalRecordResource(Resource):
         except Exception as e:
             return {"error": f"Failed to parse JSON: {str(e)}"}, 400
 
-        # Create schema instance
-        schema = MedicalRecordInsertSchema()
+        # Prepare the data for insertion
+        input_data.setdefault("appointment_id", None)  # Default to NULL if not provided
+        input_data.setdefault("pdf_file", None)       # Default to NULL if not provided
 
-        try:
-            # Validate the input data
-            validated_data = schema.load(input_data)
-            validated_data.setdefault("appointment_id", None)  # Default to NULL if not provided
-            validated_data.setdefault("pdf_file", None)       # Default to NULL if not provided
+        # Ensure pdf_file is a string or None
+        if isinstance(input_data["pdf_file"], dict):
+            input_data["pdf_file"] = None
 
-            hash_input = f"{validated_data['care_link_id']}_{datetime.now().isoformat()}"
-            validated_data["hash"] = hashlib.sha256(hash_input.encode()).hexdigest()
-        except ValidationError as err:
-            # Return validation errors if any
-            return{"errors": err.messages}, 400
-        
-        print(validated_data)
-        
+        hash_input = f"{input_data['care_link_id']}_{datetime.now().isoformat()}"
+        input_data["hash"] = hashlib.sha256(hash_input.encode()).hexdigest()
+
+        print("=====================================================================================================")
+        print(input_data)
+        print("=====================================================================================================")
 
         # SQL query for inserting a record into medical_records
-        # TO DO APPOINTMENT ID
         query = """
                 INSERT INTO medical_records (anamnesis, evolution, care_link_id,
                                              appointment_id, diagnosis, pdf_file, hash)
@@ -64,8 +79,10 @@ class MedicalRecordResource(Resource):
                         :appointment_id, :diagnosis, :pdf_file, :hash)
                 """
 
-        # Insert the validated data into the database
-        with engine.connect() as conn:
-            conn.execute(text(query), **validated_data)
-
-        return {"message": "Record inserted successfully"}, 200
+        try:
+            # Insert the data into the database
+            with engine.connect() as conn:
+                conn.execute(text(query), **input_data)
+            return {"message": "Record inserted successfully"}, 201
+        except Exception as e:
+            return {"error": f"Failed to insert medical record: {str(e)}"}, 500
