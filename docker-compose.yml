@@ -1,72 +1,28 @@
-version: '3.8'
+
 
 x-common-env: &common-env
-  MYSQL_HOST: mariadb
-  MYSQL_PORT: 3306
-  MYSQL_DATABASE: medcore_db
-  MYSQL_USER: root
-  MYSQL_PASSWORD: rootpassword
-  JWT_SECRET_KEY: jwt_secretkey
-  MY_SECRET_KEY: secretkey
-
-
+  - POSTGRES_USER: red
+  - POSTGRES_PASSWORD: red
+  - POSTGRES_DB: red
 
 services:
-  mariadb:
-    image: mariadb:10.5
+  db:
+    image: postgres:17.2-alpine3.21
+    container_name: red-db
     environment:
       <<: *common-env
-    ports:
-      - "3306:3306"
     volumes:
-      - ./db_data:/var/lib/mysql  # Ensure the data is stored in db_data directory inside your project
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 5s
-      retries: 3
-
-  flask:
-    image: backend
-    build:
-      context: .
-      dockerfile: Dockerfile
+      - ./red.sql:/docker-entrypoint-initdb.d/red.sql
+      - red_data:/var/lib/postgresql/data
     ports:
-      - "5001:5000"
-    volumes:
-      - .:/app
-    environment:
-      FLASK_ENV: development
-      <<: *common-env
-    depends_on:
-      - mariadb
+      - "5432:5432"
+    networks:
+      - red_network
 
-  nginx:
-    build:
-      context: .
-      dockerfile: nginx-stacy.Dockerfile 
-    ports:
-      - "80:80"
-    volumes:
-      - ./static:/usr/share/nginx/html
-      - ./static/scripts:/usr/share/nginx/scripts
-      - ./static/styles:/usr/share/nginx/styles
-    depends_on:
-      - flask
-
-  pytest:
-    build:
-      context: .
-      dockerfile: Dockerfile.pytest
-    command: pytest --junitxml=report.xml
-    environment:
-      <<: *common-env
-    depends_on:
-      nginx:
-        condition: service_started
-      flask:
-        condition: service_started
-      mariadb:
-        condition: service_healthy
+networks:
+  red_network:
+    driver: bridge
 
 volumes:
-  mariadb_data:
+  red_data:
+    driver: local
